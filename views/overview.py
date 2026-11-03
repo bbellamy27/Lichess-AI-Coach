@@ -58,7 +58,7 @@ def render(df, summary, risk, pacing, analysis, time_stats):
         leak=leak, leak_tone=theme.TONE[bad_grade],
     )
 
-    theme.section("🏅 Badges")
+    theme.section("Badges")
     theme.badges(_badges(df, summary))
 
     st.write("")

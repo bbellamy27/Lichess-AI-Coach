@@ -29,7 +29,7 @@ def render(df, opening_stats, risk, pacing, analysis, time_stats):
     (_, strength), (leak_grade, leak) = grades.findings(win_rate, analysis)
     theme.takeaway(f"Biggest leak: {leak[0].lower() + leak[1:]}." if leak_grade == grades.BAD
                    else f"Strongest area: {strength[0].lower() + strength[1:]}.")
-    theme.section("🧭 Style", "Risk and speed.")
+    theme.section("Style", "Risk and speed.")
     c1, c2, c3 = st.columns([1.1, 1, 1.6])
     with c1:
         theme.chart(_gauge(risk))
@@ -46,7 +46,7 @@ def render(df, opening_stats, risk, pacing, analysis, time_stats):
             st.caption(risk['feedback'])
             st.caption(pacing['feedback'])
 
-    theme.section("🎯 Accuracy", "Checked by a chess engine.")
+    theme.section("Accuracy", "Checked by a chess engine.")
     if analysis:
         theme.grade_legend()
 
@@ -62,19 +62,18 @@ def render(df, opening_stats, risk, pacing, analysis, time_stats):
             graded("Small slips", 'inaccuracy_rate', suffix="%"),
         ])
         st.write("")
-        for col, phase in zip(st.columns(3), ("Opening", "Middlegame", "Endgame")):
-            data = analysis.get('phases', {}).get(phase, {})
-            with col:
-                theme.score_card(
-                    phase, data.get('score', 0),
-                    {"Accuracy": f"{data.get('accuracy_percent', 0)}%", "Blunders": f"{data.get('blunder_rate', 0)}%"},
-                    note=data.get('advice'),
-                )
+        phases = analysis.get('phases', {})
+        theme.score_cards([
+            dict(name=phase, score=phases.get(phase, {}).get('score', 0), note=phases.get(phase, {}).get('advice'),
+                 stats={"Accuracy": f"{phases.get(phase, {}).get('accuracy_percent', 0)}%",
+                        "Blunders": f"{phases.get(phase, {}).get('blunder_rate', 0)}%"})
+            for phase in ("Opening", "Middlegame", "Endgame")
+        ])
     else:
         st.info("No engine data yet. Pick games in **Games** → **Review**.", icon=":material/neurology:")
 
     if time_stats:
-        theme.section("⏱️ Time per move", "Seconds per move, by game stage.")
+        theme.section("Time per move", "Seconds per move, by game stage.")
         cards = []
         for label, key in [("Opening", 'opening'), ("Middlegame", 'middlegame'), ("Endgame", 'endgame')]:
             status, _, tip = time_stats[f'{key}_feedback'].partition('. ')
@@ -82,7 +81,7 @@ def render(df, opening_stats, risk, pacing, analysis, time_stats):
                               grade=grades.time_grade(status), foot=f"{status}. {tip}"))
         theme.kpis(cards)
 
-    theme.section("📈 Trends", "Rating and best openings.")
+    theme.section("Trends", "Rating and best openings.")
     c1, c2 = st.columns(2)
     theme.chart(plot_rating_trend(df), c1)
     theme.chart(plot_win_rate_by_color(df), c2)

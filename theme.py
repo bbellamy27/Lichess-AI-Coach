@@ -21,7 +21,7 @@ COLORS = {
     'border': '#363940',
     'text': '#EDEDEF',
     'text_2': '#B4B6BD',
-    'muted': '#8A8D95',
+    'muted': '#9A9DA6',
     'primary': '#D7261F',
     'primary_hi': '#B81F19',
     'accent': '#FF8A80',
@@ -81,7 +81,7 @@ CSS = f"""
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap');
 :root {{
     --page: {COLORS['page']}; --surface: {COLORS['surface']}; --surface-2: {COLORS['surface_2']};
-    --line: {COLORS['line']}; --border: {COLORS['border']};
+    --line: {COLORS['line']}; --border: {COLORS['border']}; --edge: rgba(255,255,255,0.045);
     --text: {COLORS['text']}; --text-2: {COLORS['text_2']}; --muted: {COLORS['muted']};
     --primary: {COLORS['primary']}; --primary-hi: {COLORS['primary_hi']}; --accent: {COLORS['accent']};
     --tile: {COLORS['tile']};
@@ -111,7 +111,7 @@ h1, h2, h3, h4 {{ font-family: var(--display) !important; color: var(--text); le
 
 /* Metrics as cards */
 [data-testid="stMetric"] {{
-    background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 18px;
+    background: var(--surface); border: 1px solid var(--edge); border-radius: var(--radius); padding: 16px 18px;
     transition: border-color .2s var(--ease);
 }}
 [data-testid="stMetric"]:hover {{ border-color: var(--border); }}
@@ -120,7 +120,7 @@ h1, h2, h3, h4 {{ font-family: var(--display) !important; color: var(--text); le
 
 /* Tabs as a pill bar */
 .stTabs [role="tablist"] {{
-    gap: 4px; background: var(--surface); padding: 4px; border-radius: 12px; border: 1px solid var(--line);
+    gap: 4px; background: var(--surface); padding: 4px; border-radius: 12px; border: 1px solid var(--edge);
     width: fit-content; max-width: 100%; overflow-x: auto; box-shadow: none; margin-bottom: 4px;
 }}
 .stTabs [data-testid="stTab"] {{
@@ -148,25 +148,25 @@ h1, h2, h3, h4 {{ font-family: var(--display) !important; color: var(--text); le
 
 /* Inputs, containers, charts */
 [data-baseweb="input"], [data-baseweb="select"] > div {{ border-radius: 10px !important; background: var(--page) !important; }}
-[data-testid="stExpander"] details {{ border-radius: 12px; border: 1px solid var(--line); background: var(--surface); }}
-[data-testid="stAlertContainer"] {{ border-radius: 12px; background: var(--surface); border: 1px solid var(--line); }}
+[data-testid="stExpander"] details {{ border-radius: 12px; border: 1px solid var(--edge); background: var(--surface); }}
+[data-testid="stAlertContainer"] {{ border-radius: 12px; background: var(--surface); border: 1px solid var(--edge); }}
 [data-testid="stAlertContentInfo"], [data-testid="stAlertContentInfo"] * {{ color: var(--text-2) !important; }}
 [data-testid="stAlertContentInfo"] strong {{ color: var(--accent) !important; }}
 [data-testid="stPlotlyChart"] {{
-    background: var(--surface); border: none; box-shadow: inset 0 0 0 1px var(--line);
+    background: var(--surface); border: none; box-shadow: inset 0 0 0 1px var(--edge);
     border-radius: var(--radius); overflow: hidden;
 }}
-[data-testid="stDataFrame"] {{ border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }}
+[data-testid="stDataFrame"] {{ border: 1px solid var(--edge); border-radius: var(--radius); overflow: hidden; }}
 .card, [data-testid="stMetric"] {{ min-height: 124px; box-sizing: border-box; }}
 [data-testid="stVerticalBlockBorderWrapper"] {{ border-color: var(--line) !important; border-radius: var(--radius) !important; }}
 hr {{ border-color: var(--line) !important; }}
 
 /* --- Components --- */
 .hero {{ position: relative; overflow: hidden; padding: 26px 30px; min-height: 150px; box-sizing: border-box; padding-right: 190px; border-radius: 20px; margin-bottom: 18px;
-    background: linear-gradient(120deg, rgba(24,25,28,0.96) 45%, rgba(215,38,31,0.14)); border: 1px solid var(--line); }}
+    background: linear-gradient(120deg, rgba(24,25,28,0.96) 45%, rgba(215,38,31,0.14)); border: 1px solid var(--edge); }}
 .hero .hero-art {{ position: absolute; right: 20px; top: 12px; bottom: 12px; height: calc(100% - 24px);
     aspect-ratio: 1; object-fit: contain; z-index: 0 !important; pointer-events: none;
-    filter: drop-shadow(0 6px 18px rgba(0,0,0,.45)); }}
+    filter: drop-shadow(0 0 26px rgba(215,38,31,.35)) drop-shadow(0 6px 14px rgba(0,0,0,.5)); }}
 @media (max-width: 640px) {{ .hero .hero-art {{ height: 64px; top: 14px; bottom: auto; right: 14px; }} }}
 .hero > * {{ position: relative; z-index: 1; }}
 .eyebrow {{ font-size: 0.7rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--accent); font-weight: 700; }}
@@ -175,20 +175,20 @@ hr {{ border-color: var(--line) !important; }}
 .hero-title em {{ font-style: normal; background: linear-gradient(90deg, var(--accent), var(--primary)); -webkit-background-clip: text; background-clip: text; color: transparent; }}
 .hero-chips {{ display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }}
 .chip {{ font-size: 0.78rem; padding: 5px 11px; border-radius: 999px; color: var(--text-2);
-    background: rgba(255,255,255,0.04); border: 1px solid var(--line); }}
+    background: rgba(255,255,255,0.04); border: 1px solid var(--edge); }}
 .chip b {{ color: var(--text); }}
 
-.section {{ margin: 26px 0 10px; }}
+.section {{ margin: 40px 0 14px; }}
 .section-title {{ font-family: var(--display); font-size: 1.2rem; font-weight: 800; color: var(--text); letter-spacing: -0.02em; }}
 .section-sub {{ color: var(--muted); font-size: 0.85rem; margin-top: 2px; }}
 
-.card {{ background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 18px; height: 100%; }}
+.card {{ background: var(--surface); border: 1px solid var(--edge); border-radius: var(--radius); padding: 16px 18px; height: 100%; }}
 .card-label {{ color: var(--muted); font-size: 0.78rem; font-weight: 500; }}
 .card-foot {{ color: var(--text-2); font-size: 0.78rem; margin-top: 6px; }}
 .card-foot b {{ color: var(--accent); }}
 
 .kpi-grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(128px, 1fr)); gap: 12px; margin-bottom: 8px; }}
-.kpi {{ background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 18px; min-width: 0; }}
+.kpi {{ background: var(--surface); border: 1px solid var(--edge); border-radius: var(--radius); padding: 16px 18px; min-width: 0; }}
 .kpi.wide {{ grid-column: span 2; }}
 .kpi-value {{ font-family: var(--display); font-size: 2rem; font-weight: 800; color: var(--text); letter-spacing: -0.03em;
     line-height: 1.15; margin-top: 4px; display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }}
@@ -232,7 +232,7 @@ hr {{ border-color: var(--line) !important; }}
 .score-note {{ font-size: 0.84rem; color: var(--text-2); margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); }}
 
 .insight {{ display: flex; gap: 12px; align-items: center; padding: 12px 14px; border-radius: 14px;
-    background: var(--surface); border: 1px solid var(--line); margin-bottom: 8px; }}
+    background: var(--surface); border: 1px solid var(--edge); margin-bottom: 8px; }}
 .insight-title {{ font-weight: 700; color: var(--text); font-size: 0.82rem; }}
 .insight-body {{ color: var(--text-2); font-size: 0.86rem; margin-top: 1px; }}
 
@@ -252,7 +252,7 @@ hr {{ border-color: var(--line) !important; }}
 .brand-mark {{ width: 44px; height: 44px; flex: none; display: grid; place-items: center; }}
 .brand-mark img {{ width: 100%; height: 100%; object-fit: contain; }}
 .empty-logo {{ width: 168px; height: 168px; object-fit: contain; margin: 0 auto 6px; display: block;
-    filter: drop-shadow(0 10px 30px rgba(229,83,75,.25)); }}
+    filter: drop-shadow(0 0 34px rgba(215,38,31,.4)); }}
 .brand-name {{ font-family: var(--display); font-weight: 800; font-size: 1.15rem; color: var(--text); letter-spacing: -0.02em; }}
 
 .st-key-report {{ padding: 8px 12px; }}
@@ -264,25 +264,35 @@ hr {{ border-color: var(--line) !important; }}
 [data-testid="stChatMessageAvatarUser"] {{ background: var(--surface-2) !important; color: var(--text-2) !important; }}
 [data-testid="stChatMessageAvatarAssistant"] {{ background: var(--primary) !important; color: #fff !important; }}
 [data-testid="stChatMessage"] {{ background: transparent; }}
-.takeaway {{ display: flex; gap: 10px; align-items: flex-start; padding: 12px 16px; margin: 4px 0 14px;
-    border-radius: 12px; background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--primary);
-    color: var(--text); font-size: 0.95rem; font-weight: 600; }}
+.takeaway {{ margin: 10px 0 22px; padding-left: 14px; border-left: 3px solid var(--primary);
+    font-family: var(--display); font-size: clamp(1.1rem, 2vw, 1.4rem); font-weight: 800; line-height: 1.3;
+    color: var(--text); letter-spacing: -0.015em; }}
 .story {{ display: grid; grid-template-columns: 1.1fr 1fr 1fr; gap: 12px; }}
 @media (max-width: 900px) {{ .story {{ grid-template-columns: 1fr; }} }}
 .score-card {{ display: flex; gap: 18px; align-items: center; }}
-.score-ring {{ width: 92px; height: 92px; border-radius: 50%; flex: none; display: grid; place-items: center;
+.score-ring {{ width: 124px; height: 124px; border-radius: 50%; flex: none; display: grid; place-items: center;
     background: conic-gradient(var(--tone) calc(var(--pct) * 1%), var(--surface-2) 0); }}
-.score-ring span {{ width: 74px; height: 74px; border-radius: 50%; background: var(--surface); display: grid; place-items: center;
-    font-family: var(--display); font-size: 2.2rem; font-weight: 800; color: var(--tone); }}
+.score-ring span {{ width: 100px; height: 100px; border-radius: 50%; background: var(--surface); display: grid; place-items: center;
+    font-family: var(--display); font-size: 3rem; font-weight: 800; color: var(--tone); }}
 .story-title {{ color: var(--muted); font-size: 0.78rem; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; }}
 .story-big {{ font-family: var(--display); font-size: 1.15rem; font-weight: 800; color: var(--text); margin-top: 4px; line-height: 1.3; }}
 .story-sub {{ color: var(--text-2); font-size: 0.85rem; margin-top: 4px; }}
 .badge-row {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; }}
 .badge {{ display: flex; gap: 10px; align-items: center; padding: 12px 14px; border-radius: 14px;
-    background: var(--surface); border: 1px solid var(--line); }}
+    background: var(--surface); border: 1px solid var(--edge); }}
 .badge-icon {{ font-size: 1.5rem; }}
 .badge-name {{ font-weight: 700; color: var(--text); font-size: 0.9rem; }}
 .badge-desc {{ color: var(--muted); font-size: 0.76rem; }}
+.st-key-step [data-testid="stButtonGroup"] {{ gap: 2px; flex-wrap: wrap; }}
+.st-key-step button {{ background: transparent !important; border: none !important; color: var(--muted) !important;
+    font-weight: 600; border-radius: 8px !important; padding: 6px 12px !important; }}
+.st-key-step button:hover {{ color: var(--text) !important; background: var(--surface) !important; }}
+.st-key-step button[aria-checked="true"] {{ color: var(--text) !important; background: var(--surface) !important;
+    box-shadow: inset 0 -2px 0 var(--primary); }}
+.step-progress {{ height: 3px; border-radius: 3px; background: var(--surface-2); margin: 2px 0 6px; overflow: hidden; }}
+.step-progress span {{ display: block; height: 100%; background: linear-gradient(90deg, var(--primary-hi), var(--primary));
+    border-radius: 3px; transition: width .3s ease; }}
+.score-grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }}
 .footer {{ color: var(--muted); font-size: 0.72rem; margin-top: 20px; }}
 </style>
 """
@@ -381,7 +391,7 @@ def grade_legend(note="Graded against standard chess benchmarks"):
 
 def takeaway(text):
     """One plain-English sentence summarising a tab."""
-    _html(f'<div class="takeaway">📌 <span>{esc(text)}</span></div>')
+    _html(f'<div class="takeaway">{esc(text)}</div>')
 
 
 def story_cards(score, letter, tone, style, strength, strength_tone, leak, leak_tone):
@@ -393,11 +403,11 @@ def story_cards(score, letter, tone, style, strength, strength_tone, leak, leak_
         <div class="story-big">{score}/100</div>
         <div class="story-sub">A elite · B strong · C solid club</div></div>
       </div>
-      <div class="card"><div class="story-title">💪 Biggest strength</div>
-        <div class="story-big" style="color:{strength_tone}">{esc(strength)}</div>
+      <div class="card"><div class="story-title" style="color:{strength_tone}">Biggest strength</div>
+        <div class="story-big">{esc(strength)}</div>
         <div class="story-sub">Style: {esc(style)}</div></div>
-      <div class="card"><div class="story-title">🎯 Fix this first</div>
-        <div class="story-big" style="color:{leak_tone}">{esc(leak)}</div>
+      <div class="card"><div class="story-title" style="color:{leak_tone}">Fix this first</div>
+        <div class="story-big">{esc(leak)}</div>
         <div class="story-sub">Your AI Coach plan starts here.</div></div>
     </div>
     """)
@@ -431,6 +441,12 @@ def _go(target):
     st.session_state["_scroll_top"] = True
 
 
+def step_progress(index, path_len):
+    """Thin progress line under the step bar."""
+    pct = min(100, (index + 1) / path_len * 100)
+    _html(f'<div class="step-progress"><span style="width:{pct:.0f}%"></span></div>')
+
+
 def step_nav(names, current):
     """Back / Next buttons under a step, so the app reads as a path."""
     i = names.index(current)
@@ -448,18 +464,21 @@ def step_nav(names, current):
                         ".scrollTo(0, 0); [0, 120, 300, 600].forEach(ms => setTimeout(toTop, ms));</script>", height=0)
 
 
-def score_card(name, score, stats, note=None):
-    stats_html = "".join(f'<span>{esc(k)} <b>{esc(v)}</b></span>' for k, v in stats.items())
-    note_html = f'<div class="score-note">{esc(note)}</div>' if note else ''
-    _html(f"""
-    <div class="card" style="--score:{status_color(score)}">
-        <div class="score-head"><span class="score-name">{esc(name)}</span>
-        <span class="score-value">{esc(score)}<small>/10</small></span></div>
-        <div class="meter"><span style="width:{max(0, min(10, float(score))) * 10}%"></span></div>
-        <div class="score-stats">{stats_html}</div>
-        {note_html}
-    </div>
-    """)
+def score_cards(cards):
+    """Equal-height row of 0-10 score cards: dicts with name, score, stats, note."""
+    html_cards = []
+    for c in cards:
+        stats_html = "".join(f'<span>{esc(k)} <b>{esc(v)}</b></span>' for k, v in c['stats'].items())
+        note_html = f'<div class="score-note">{esc(c["note"])}</div>' if c.get('note') else ''
+        html_cards.append(f"""
+        <div class="card" style="--score:{status_color(c['score'])}">
+            <div class="score-head"><span class="score-name">{esc(c['name'])}</span>
+            <span class="score-value">{esc(c['score'])}<small>/10</small></span></div>
+            <div class="meter"><span style="width:{max(0, min(10, float(c['score']))) * 10}%"></span></div>
+            <div class="score-stats">{stats_html}</div>
+            {note_html}
+        </div>""")
+    _html(f'<div class="score-grid">{"".join(html_cards)}</div>')
 
 
 def insight(icon, title, body):

@@ -30,7 +30,7 @@ def render(df, opening_stats, provider, db):
     counts = df['result'].value_counts()
     theme.takeaway(f"{len(df)} games · {counts.get('Win', 0)} wins · {counts.get('Loss', 0)} losses. "
                    "Tick one for an AI review.")
-    theme.section("♟️ Games")
+    theme.section("Games")
     table = pd.DataFrame({
         'Result': df['result'].map(RESULT_ICONS) + " · " + df['speed'].fillna('').str.title(),
         'Opponent': df.apply(_opponent, axis=1),
@@ -64,7 +64,7 @@ def render(df, opening_stats, provider, db):
         with c2.popover("Save", icon=":material/bookmark_add:", width="stretch"):
             _save_to_study(db, df, selected)
 
-    theme.section("📖 Openings", "Your first moves and win rates.")
+    theme.section("Openings", "Your first moves and win rates.")
     if opening_stats.empty:
         st.info("No openings yet.")
         return

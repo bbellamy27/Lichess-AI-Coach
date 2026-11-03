@@ -109,6 +109,11 @@ STEPS = {
     "🗄️ Vault": lambda: vault.render(db),
 }
 names = list(STEPS)
-step = st.segmented_control("Step", names, key="step", default=names[0], label_visibility="collapsed") or names[0]
+path_len = names.index(theme.PATH_END) + 1
+step = st.segmented_control(
+    "Step", names, key="step", default=names[0], label_visibility="collapsed",
+    format_func=lambda n: f"{names.index(n) + 1} · {n}" if names.index(n) < path_len else n,
+) or names[0]
+theme.step_progress(names.index(step), path_len)
 STEPS[step]()
 theme.step_nav(names, step)

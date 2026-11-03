@@ -21,7 +21,7 @@ def _study_pgn(games):
 
 
 def render(db):
-    theme.section("📥 Import")
+    theme.section("Import")
     if not db.connected:
         st.error("Database not connected.")
         return
@@ -44,7 +44,7 @@ def render(db):
         finally:
             os.remove(f.name)
 
-    theme.section("🗂️ Studies")
+    theme.section("Studies")
     studies = db.get_studies()
     if not studies:
         st.info("No studies yet. Save games from the **Games** tab.")

@@ -89,3 +89,47 @@ def findings(win_rate, analysis=None):
     good_text = FINDINGS[best[1]][0].format(v=best[2])
     bad_text = FINDINGS[worst[1]][1 if worst[0] > 0 else 0].format(v=worst[2])
     return (grade(best[1], best[2]), good_text), (grade(worst[1], worst[2]), bad_text)
+
+
+# --- Skill radar ------------------------------------------------------------------------
+# Every axis is 0-10 where higher is better. Faster games produce more errors for everyone, so tactics
+# and accuracy are compared on a classical-equivalent scale.
+SPEED_FACTOR = {'bullet': 1.45, 'blitz': 1.2, 'rapid': 1.0, 'classical': 0.85}
+
+
+def _clamp_scale(value, worst, best):
+    return round(_scale(value, worst, best) / 10, 1)
+
+
+def typical_skills(rating):
+    """What a typical player at this rating scores on each axis (the dashed reference outline)."""
+    r = rating or 1500
+    blunders = max(1.5, 12 - (r - 800) / 150)       # ~9% at 1200, ~3% at 2100
+    acpl = max(20, 120 - 0.04 * r)                    # classical-equivalent ACPL
+    phase = min(9.0, 3 + (r - 800) / 300)
+    return {
+        'Tactics': _clamp_scale(blunders, 20, 1),
+        'Accuracy': _clamp_scale(acpl, 100, 20),
+        'Middlegame': round(phase, 1),
+        'Endgame': round(phase, 1),
+        'Time management': 7.0,
+        'Results vs. equals': 5.0,
+    }
+
+
+def skills(analysis, prof, speed):
+    """Player's 0-10 skill scores; None where there's no data for an axis."""
+    phases = (analysis or {}).get('phases', {})
+    time_share = prof['time_losses'] / prof['losses'] if prof and prof['losses'] else None
+    equals = prof['similar'] if prof else None
+    return {
+        'Tactics': (_clamp_scale(analysis['blunder_rate'] / SPEED_FACTOR.get(speed, 1.0), 20, 1)
+                    if analysis else None),
+        'Accuracy': (_clamp_scale(analysis['avg_acpl'] / SPEED_FACTOR.get(speed, 1.0), 100, 20)
+                     if analysis else None),
+        'Middlegame': phases.get('Middlegame', {}).get('score'),
+        'Endgame': phases.get('Endgame', {}).get('score'),
+        'Time management': _clamp_scale(time_share, 0.5, 0.0) if time_share is not None else None,
+        'Results vs. equals': (_clamp_scale(float(equals['win_rate']), 0.25, 0.75)
+                               if equals and equals['games'] >= 5 else None),
+    }

@@ -301,6 +301,14 @@ hr {{ border-color: var(--line) !important; }}
 .step-progress span {{ display: block; height: 100%; background: linear-gradient(90deg, var(--primary-hi), var(--primary));
     border-radius: 3px; transition: width .3s ease; }}
 .score-grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }}
+.style-card {{ display: flex; flex-direction: column; gap: 18px; }}
+.style-ends {{ display: flex; justify-content: space-between; font-size: 0.82rem; font-weight: 600; color: var(--text-2); }}
+.style-track {{ position: relative; height: 6px; border-radius: 3px; margin: 8px 0 6px;
+    background: linear-gradient(90deg, var(--surface-2), var(--border), var(--surface-2)); }}
+.style-track i {{ position: absolute; top: 50%; width: 16px; height: 16px; border-radius: 50%; transform: translate(-50%, -50%);
+    background: var(--data, #2E9BDB); border: 3px solid var(--surface); box-shadow: 0 0 0 1px var(--data, #2E9BDB); }}
+.style-note {{ font-size: 0.78rem; color: var(--muted); }}
+.style-foot {{ font-size: 0.78rem; color: var(--muted); border-top: 1px solid var(--edge); padding-top: 10px; }}
 .footer {{ color: var(--muted); font-size: 0.72rem; margin-top: 20px; }}
 </style>
 """
@@ -469,6 +477,21 @@ def step_nav(names, current):
         # Jump to the top of the new step; retry briefly while Streamlit finishes drawing it
         components.html("<script>const toTop = () => window.parent.document.querySelector('[data-testid=stMain]')"
                         ".scrollTo(0, 0); [0, 120, 300, 600].forEach(ms => setTimeout(toTop, ms));</script>", height=0)
+
+
+def style_sliders(items):
+    """Neutral style scales (no good/bad colour): (left label, right label, 0-10 value, note)."""
+    rows = []
+    for left, right, value, note in items:
+        pct = max(0, min(10, float(value))) * 10
+        rows.append(f"""
+        <div class="style-row">
+          <div class="style-ends"><span>{esc(left)}</span><span>{esc(right)}</span></div>
+          <div class="style-track"><i style="left:{pct:.0f}%"></i></div>
+          <div class="style-note">{esc(note)}</div>
+        </div>""")
+    _html(f'<div class="card style-card"><div class="story-title">Your style</div>{"".join(rows)}'
+          '<div class="style-foot">Style has no right answer: it shapes which training fits you.</div></div>')
 
 
 def score_cards(cards):

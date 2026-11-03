@@ -1,19 +1,10 @@
 import streamlit as st
 
+import grades
+import local_coach
 import theme
 from eda import (plot_correlation_heatmap, plot_move_time_distribution, plot_repertoire, plot_opponent_scatter,
                  plot_radar_chart, plot_termination_pie, plot_time_heatmap)
-
-
-def _personality(risk, pacing, analysis):
-    """Five 0-10 traits; neutral 5 where data is missing."""
-    phases = (analysis or {}).get('phases', {})
-    accuracy = max(0, min(10, 10 - analysis['avg_acpl'] / 10)) if analysis else 5
-    return {
-        'categories': ['Aggression', 'Speed', 'Accuracy', 'Opening prep', 'Endgame skill'],
-        'values': [risk['score'], pacing['score'], accuracy,
-                   phases.get('Opening', {}).get('score', 5), phases.get('Endgame', {}).get('score', 5)],
-    }
 
 
 def _chart(col, fig, fallback):
@@ -28,10 +19,25 @@ def render(df, risk, pacing, analysis, time_stats):
     favourite = f" Favourite opening: {family.index[0]}." if not family.empty else ""
     theme.takeaway(f"You play like a {theme.plain(pacing['label'])} with a {theme.plain(risk['label']).lower()} "
                    f"style.{favourite}")
-    theme.section("Style profile", "Five traits, scored 0-10.")
-    c1, c2 = st.columns(2)
-    _chart(c1, plot_radar_chart(_personality(risk, pacing, analysis)), "Not enough data.")
-    _chart(c2, plot_move_time_distribution((time_stats or {}).get('raw_times')), "No clock data.")
+    prof = local_coach.profile(df)
+    rating = int(df.sort_values('date')['user_rating'].iloc[-1])
+    band = f"Typical {rating // 100 * 100} {prof['speed']} player"
+    analysed = (analysis or {}).get('games_analyzed', 0)
+    theme.section("Skills", "Higher is better on every axis.")
+    c1, c2 = st.columns([1.35, 1])
+    _chart(c1, plot_radar_chart(grades.skills(analysis, prof, prof['speed']), grades.typical_skills(rating), band),
+           "Not enough data.")
+    with c2:
+        theme.style_sliders([
+            ("Solid", "Aggressive", risk['score'], f"Risk-taking {risk['score']}/10: {theme.plain(risk['label'])}"),
+            ("Quick finishes", "Long grinds", pacing['score'],
+             f"Average game {pacing['avg_moves']} moves: {theme.plain(pacing['label'])}"),
+        ])
+    st.caption(f"Based on {len(df)} games, {analysed} with engine analysis. "
+               "Tactics and accuracy are adjusted for game speed.")
+
+    theme.section("Time per move", "How long you think, move by move.")
+    _chart(st, plot_move_time_distribution((time_stats or {}).get('raw_times')), "No clock data.")
 
     theme.section("Repertoire", "Wins and losses by opening.")
     c1, c2 = st.columns(2)

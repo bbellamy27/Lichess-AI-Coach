@@ -142,18 +142,27 @@ def plot_correlation_heatmap(df):
     return fig
 
 
-def plot_radar_chart(data):
-    if not data:
+def plot_radar_chart(player, typical, typical_label):
+    """Skill radar (higher = better) with a dashed outline of a typical player at this rating."""
+    if not player:
         return None
-    categories = data['categories'] + data['categories'][:1]
-    values = data['values'] + data['values'][:1]
-    fig = go.Figure(go.Scatterpolar(
-        r=values, theta=categories, fill='toself', fillcolor='rgba(46,155,219,0.25)',
-        line=dict(color=COLORS['data'], width=2), marker=dict(size=8),
-        hovertemplate='%{theta}<br><b>%{r:.1f}/10</b><extra></extra>',
+    axes = list(player)
+    labels = [a if player[a] is not None else f"{a} (no data)" for a in axes]
+    loop = lambda values: values + values[:1]
+    fig = go.Figure()
+    fig.add_trace(go.Scatterpolar(
+        r=loop([typical[a] for a in axes]), theta=loop(labels), name=typical_label,
+        line=dict(color=COLORS['muted'], width=1.5, dash='dash'), fill='none', mode='lines',
+        hovertemplate='%{theta}<br>' + typical_label + ': <b>%{r:.1f}/10</b><extra></extra>',
+    ))
+    fig.add_trace(go.Scatterpolar(
+        r=loop([player[a] or 0 for a in axes]), theta=loop(labels), name="You", fill='toself',
+        fillcolor='rgba(46,155,219,0.25)', line=dict(color=COLORS['data'], width=2), marker=dict(size=8),
+        hovertemplate='%{theta}<br>You: <b>%{r:.1f}/10</b><extra></extra>',
     ))
     fig.update_layout(
-        title="Player Personality", showlegend=False, margin=dict(l=70, r=70, t=64, b=40),
+        title="Skills vs. Your Rating Level", showlegend=True, margin=dict(l=80, r=80, t=72, b=40),
+        legend=dict(orientation='h', yanchor='bottom', y=-0.16, xanchor='center', x=0.5),
         polar=dict(bgcolor='rgba(0,0,0,0)',
                    radialaxis=dict(range=[0, 10], tickvals=[5, 10], gridcolor=COLORS['line'], linecolor='rgba(0,0,0,0)',
                                    tickfont=dict(color=COLORS['muted'], size=10), angle=90, tickangle=90),

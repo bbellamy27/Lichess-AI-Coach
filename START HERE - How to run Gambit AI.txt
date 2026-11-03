@@ -1,0 +1,98 @@
+GAMBIT AI - HOW TO RUN IT IN CLASS
+==================================
+
+Gambit AI analyses a chess player's Lichess games and writes a personal
+training plan. It runs on your own computer in a web browser. No account is
+needed, and the built-in demo works without internet once it's installed.
+
+  Setup: about 10 minutes, once, before class (needs internet)
+  Demo:  about 5 minutes
+
+
+BEFORE CLASS: SET IT UP ONCE
+----------------------------
+The first launch downloads about 200 MB of components, so do this the day
+before, with internet.
+
+1. Install Python 3.10 or newer from https://www.python.org/downloads/
+   - Windows: on the first installer screen, tick "Add python.exe to PATH"
+     before clicking Install.
+   - Mac: run the installer with the default options.
+   (Skip this if Python 3.10+ is already installed.)
+
+2. You already have this folder. If it's still a ZIP, right-click it and
+   choose "Extract All" (Windows) or double-click it (Mac).
+
+3. Double-click the launcher in this folder:
+   - Windows: Run Gambit AI.bat
+   - Mac:     Run Gambit AI.command
+   A black terminal window opens and sets everything up. The first time takes
+   2-5 minutes; after that it starts in seconds.
+
+4. If your computer asks, allow it (normal for downloaded programs):
+   - Windows "Windows protected your PC": click "More info", then "Run anyway".
+   - Windows Firewall: click "Allow" (it only talks to your own computer).
+   - Mac "cannot be opened": right-click the file, choose "Open", then "Open".
+
+5. Your browser opens Gambit AI. If it doesn't, go to http://localhost:8501
+   Click "Try the demo". If you see a player summary with a score, you're
+   ready. Close the black window to stop the app.
+
+TIP: about 10 minutes before you present, double-click the launcher again so
+the app is already open in your browser.
+
+
+IN CLASS: THE 5-MINUTE DEMO
+---------------------------
+1. Start the app and click the red "Try the demo" button.
+2. Overview: point out the Gambit Score (A-F), the biggest strength, the first
+   thing to fix, and the badges.
+3. Click "Next: Games": every game, with wins in green and losses in red.
+4. Click "Next: Performance": colour-coded grades. Green is good, amber is OK,
+   red needs work, judged against standard chess benchmarks.
+5. Click "Next: Insights": the skills chart. The blue shape is this player;
+   the dashed outline is a typical player at the same rating.
+6. Click "Next: AI Coach", then "Generate report". This is the heart of the
+   app: analysis, a 7-day training plan, tactics with Lichess links, a
+   sparring plan and targets.
+   - Most reliable: in the left sidebar under "AI coach", choose
+     "Built-in coach (offline)" first. The report appears in seconds.
+   - Or keep "Free AI": written live by an AI in about a minute. If the AI
+     is busy, the app switches to the built-in coach automatically.
+
+
+IF SOMETHING GOES WRONG
+-----------------------
+"Python 3.10 or newer is required"
+  Install Python (step 1). On Windows, re-run the installer, choose Modify,
+  and tick "Add Python to environment variables".
+
+"Setup failed" in the black window
+  Check the internet connection and double-click the launcher again.
+
+The browser didn't open
+  Go to http://localhost:8501 (or the address shown in the black window,
+  for example :8502).
+
+The black window closed by itself
+  Run the launcher again and read the last message; it says what's missing.
+
+Mac: double-clicking does nothing
+  Open Terminal, type "bash " (with a space), drag "Run Gambit AI.command"
+  into the window and press Enter.
+
+The coaching report says the AI is busy
+  Choose "Built-in coach (offline)" in the sidebar and click
+  "Generate report" again.
+
+Typing a Lichess username gives an error
+  Lichess now requires an access token to download someone's games.
+  Use "Try the demo" for class.
+
+Game review on a Mac does nothing
+  Reviews use the Stockfish engine, which is included for Windows only.
+  Everything else works.
+
+
+Built by Brian Bellamy and Harold Gonzalez
+Programming for Data Science capstone

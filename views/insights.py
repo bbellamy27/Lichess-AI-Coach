@@ -17,8 +17,9 @@ def _chart(col, fig, fallback):
 def render(df, risk, pacing, analysis, time_stats):
     family = df['opening_name'].dropna().str.split(':').str[0].value_counts()
     favourite = f" Favourite opening: {family.index[0]}." if not family.empty else ""
-    theme.takeaway(f"You play like a {theme.plain(pacing['label'])} with a {theme.plain(risk['label']).lower()} "
-                   f"style.{favourite}")
+    style = theme.plain(risk['label']).lower()
+    article = "an" if style[:1] in "aeiou" else "a"
+    theme.takeaway(f"You play like a {theme.plain(pacing['label'])} with {article} {style} style.{favourite}")
     prof = local_coach.profile(df)
     rating = int(df.sort_values('date')['user_rating'].iloc[-1])
     band = f"Typical {rating // 100 * 100} {prof['speed']} player"

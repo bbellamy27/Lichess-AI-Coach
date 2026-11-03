@@ -7,7 +7,7 @@ from data_processing import get_opening_stats
 
 
 def render(df, speed, provider, stats, risk, pacing, time_stats, analysis):
-    theme.takeaway("Your plan: one verdict, three fixes, one drill.")
+    theme.takeaway("Your personal training plan: strengths, leaks, drills and a 7-day schedule.")
     theme.section("Coaching report")
     if coach_ai.missing_key(provider):
         st.warning(f"Add a {provider} key in the sidebar.")
@@ -21,13 +21,20 @@ def render(df, speed, provider, stats, risk, pacing, time_stats, analysis):
 
     with st.container(border=True, key="report"):
         if clicked:
-            prompt = coach_ai.report_prompt(stats, risk, pacing, time_stats, analysis,
-                                            get_opening_stats(df, color="white"), get_opening_stats(df, color="black"))
-            backup = local_coach.report(stats, risk, pacing, analysis, time_stats, get_opening_stats(df))
-            reports[key] = st.write_stream(
-                coach_ai.stream(provider, [{"role": "user", "content": prompt}], fallback=backup))
+            openings = get_opening_stats(df)
+            white, black = get_opening_stats(df, color="white"), get_opening_stats(df, color="black")
+            plan = local_coach.plan_sections(stats, analysis, time_stats, openings, white, black)
+            full_backup = (local_coach.analysis_sections(stats, risk, pacing, analysis, time_stats, openings)
+                           + "\n\n" + plan)
+            # The AI writes the analysis; the training plan is always built from the data and added after it
+            prompt = coach_ai.report_prompt(stats, risk, pacing, time_stats, analysis, white, black)
+            text = st.write_stream(coach_ai.stream(provider, [{"role": "user", "content": prompt}],
+                                                   fallback=full_backup))
+            if not text.startswith(coach_ai.FALLBACK_NOTE):
+                text += "\n\n" + st.write_stream(coach_ai.stream(coach_ai.OFFLINE, [], fallback=plan))
+            reports[key] = text
             st.rerun()  # redraw with the Regenerate label
         elif key in reports:
             st.markdown(reports[key])
         else:
-            st.caption("Ready in seconds. Works offline too.")
+            st.caption("A full report with a week of training. Works offline too.")

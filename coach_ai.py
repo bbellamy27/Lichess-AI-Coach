@@ -43,6 +43,9 @@ def _sse(url, payload, headers=None):
                 yield delta
 
 
+FALLBACK_NOTE = "*Built-in coach (the AI service didn't respond).*"
+
+
 def _typewriter(text, delay=0.012):
     """Yield prepared text word by word so it reads like a live reply."""
     for word in text.split(" "):
@@ -84,49 +87,60 @@ def stream(provider, messages, context=None, fallback=None):
             yield " …"
             return
     if fallback:
-        yield "*Built-in coach (the AI service didn't respond).*\n\n"
+        yield FALLBACK_NOTE + "\n\n"
         yield from _typewriter(fallback)
     else:
         yield BUSY
 
 
 def report_prompt(stats, risk, pacing, time_stats, analysis, white_stats, black_stats):
-    """Short, structured coaching report request built from the player's numbers."""
+    """Request for the analysis half of the report; the plan half comes from local_coach.plan_sections."""
     def openings(table):
         if table is None or table.empty:
             return "none"
-        return "; ".join(f"{r.opening_name} ({r.games}g, {r.win_rate:.0%})" for r in table.head(4).itertuples())
+        return "; ".join(f"{r.opening_name} ({r.games} games: {r.wins}W-{r.draws}D-{r.losses}L, {r.win_rate:.0%})"
+                         for r in table.head(6).itertuples())
 
     lines = [
         f"Rating {stats['current_rating']}, {stats['total_games']} games, win rate {stats['win_rate']:.0%}.",
-        f"Style: {risk['label']} (risk {risk['score']}/10). Pace: {pacing['label']}, avg {pacing['avg_moves']} moves.",
-        f"As White: {openings(white_stats)}.",
-        f"As Black (names may include White's reply; they played the defense): {openings(black_stats)}.",
+        f"Risk profile: {risk['label']} ({risk['score']}/10). {risk['feedback']}",
+        f"Pace: {pacing['label']}, average game {pacing['avg_moves']} moves. {pacing['feedback']}",
+        f"Openings as White: {openings(white_stats)}.",
+        f"Openings as Black (names may include White's reply; the player chose the defense): {openings(black_stats)}.",
     ]
     if time_stats:
-        lines.append("Seconds per move: " + ", ".join(
-            f"{p} {time_stats[f'{p}_avg']} ({time_stats[f'{p}_feedback'].split(' ·')[0]})"
-            for p in ('opening', 'middlegame', 'endgame')))
+        for p in ('opening', 'middlegame', 'endgame'):
+            lines.append(f"Time in the {p}: {time_stats[f'{p}_avg']}s per move ({time_stats[f'{p}_feedback']})")
     if analysis:
-        lines.append(f"Engine: ACPL {analysis['avg_acpl']}, blunders {analysis['blunder_rate']}%, "
-                     f"mistakes {analysis['mistake_rate']}%.")
+        lines.append(f"Engine accuracy over {analysis.get('games_analyzed', '?')} analysed games: ACPL "
+                     f"{analysis['avg_acpl']}, blunders {analysis['blunder_rate']}% of moves, mistakes "
+                     f"{analysis['mistake_rate']}%, inaccuracies {analysis['inaccuracy_rate']}%.")
+        for phase, data in analysis.get('phases', {}).items():
+            lines.append(f"{phase}: score {data.get('score')}/10, accuracy {data.get('accuracy_percent')}%, "
+                         f"blunders {data.get('blunder_rate')}%.")
 
-    return f"""Coach this chess player. Use only their data. Match advice to their rating:
+    return f"""You are a grandmaster-level chess coach writing a personal coaching report and training plan.
+Use ONLY the player's data below. Quote their real numbers. Tailor every recommendation to their rating:
 {ELO_BANDS}
-Data:
+Player data:
 {chr(10).join('- ' + l for l in lines)}
 
-Reply in markdown, under 130 words, exactly this format:
-### Verdict
-One sentence on who they are as a player.
-### Fix these
-1. **Short title**: one sentence.
-2. **Short title**: one sentence.
-3. **Short title**: one sentence.
-### This week
-One concrete drill with a number (e.g. "20 minutes of...").
-### Keep doing
-One short line on their biggest strength."""
+Write the analysis part of their report in markdown (about 350-400 words; a training plan, drills and
+targets are added separately, so do not write those). Be specific, explain the chess reasons behind
+each number, and stay encouraging. Use exactly these sections:
+
+## Summary
+3-4 sentences: who this player is, their style, and the single biggest opportunity.
+
+## Strengths
+2-3 bullets, each tied to a number from the data and what it says about their chess.
+
+## Where you lose points
+A short paragraph each for **Opening**, **Middlegame**, **Endgame** and **Time management**,
+explaining what the numbers mean and why it costs games at this rating.
+
+## The one thing
+The single habit that would gain the most rating points, why it matters, and what it looks like in a game."""
 
 
 ELO_BANDS = """

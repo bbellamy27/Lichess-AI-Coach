@@ -256,8 +256,15 @@ hr {{ border-color: var(--line) !important; }}
     filter: drop-shadow(0 0 34px rgba(215,38,31,.4)); }}
 .brand-name {{ font-family: var(--display); font-weight: 800; font-size: 2rem; line-height: 1; color: var(--text); letter-spacing: -0.03em; }}
 
-.st-key-report {{ padding: 8px 12px; }}
-.st-key-report h1, .st-key-report h2 {{ font-size: 1.2rem !important; margin-top: 1.2rem; }}
+.st-key-report {{ padding: 12px 22px 18px; }}
+.st-key-report h2 {{ font-size: 1.25rem !important; margin-top: 1.6rem !important; padding-bottom: 6px;
+    border-bottom: 1px solid var(--edge); }}
+.st-key-report table {{ width: 100%; border-collapse: collapse; font-size: 0.9rem; margin: 6px 0 4px; }}
+.st-key-report th {{ text-align: left; color: var(--muted); font-weight: 600; border-bottom: 1px solid var(--border); padding: 8px 10px; }}
+.st-key-report td {{ border-bottom: 1px solid var(--edge); padding: 8px 10px; color: var(--text-2); vertical-align: top; }}
+.st-key-report td:first-child {{ color: var(--text); font-weight: 700; white-space: nowrap; }}
+.st-key-report em {{ color: var(--accent); font-style: normal; font-weight: 600; }}
+.st-key-report h1 {{ font-size: 1.35rem !important; }}
 .st-key-report h3, .st-key-report h4 {{ font-size: 1rem !important; }}
 .st-key-report p, .st-key-report li {{ color: var(--text-2); line-height: 1.65; }}
 .st-key-report strong {{ color: var(--text); }}

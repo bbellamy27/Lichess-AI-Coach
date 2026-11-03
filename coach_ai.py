@@ -46,7 +46,7 @@ def _sse(url, payload, headers=None):
 FALLBACK_NOTE = "*Built-in coach (the AI service didn't respond).*"
 
 
-def _typewriter(text, delay=0.012):
+def _typewriter(text, delay=0.003):
     """Yield prepared text word by word so it reads like a live reply."""
     for word in text.split(" "):
         yield word + " "

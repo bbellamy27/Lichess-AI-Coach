@@ -2,12 +2,22 @@ import pandas as pd
 import streamlit as st
 
 import coach_ai
+import grades
 import theme
 from local_engine import LocalEngine
 
 
 RESULT_ICONS = {'Win': '✓ Win', 'Loss': '✕ Loss', 'Draw': '= Draw'}
 SIDE_ICONS = {'white': '♔', 'black': '♚'}
+RESULT_TONE = {'Win': grades.GOOD, 'Loss': grades.BAD, 'Draw': grades.NEUTRAL}
+
+
+def _color(grade):
+    return f"color: {theme.TONE[grade]}; font-weight: 600" if grade != grades.NEUTRAL else ""
+
+
+def _acpl_color(value):
+    return "" if value in ("—", None) else _color(grades.grade('acpl', float(value)))
 
 
 def _opponent(row):
@@ -17,7 +27,7 @@ def _opponent(row):
 
 
 def render(df, opening_stats, provider, db):
-    theme.section("Games")
+    theme.section("♟️ Games")
     st.caption("Tick games to review them with Stockfish + AI.")
     table = pd.DataFrame({
         'Result': df['result'].map(RESULT_ICONS) + " · " + df['speed'].fillna('').str.title(),
@@ -28,8 +38,11 @@ def render(df, opening_stats, provider, db):
         'Date': df['date'],
         'Link': "https://lichess.org/" + df['game_id'].astype(str),
     })
+    styled = (table.style
+              .apply(lambda col: [_color(RESULT_TONE[r]) for r in df['result']], subset=['Result'])
+              .map(_acpl_color, subset=['ACPL']))
     event = st.dataframe(
-        table, hide_index=True, width="stretch", height=420,
+        styled, hide_index=True, width="stretch", height=420,
         on_select="rerun", selection_mode="multi-row", key="games_table",
         column_config={
             'Result': st.column_config.TextColumn(width=110),
@@ -49,12 +62,16 @@ def render(df, opening_stats, provider, db):
         with c2.popover("Save", icon=":material/bookmark_add:", width="stretch"):
             _save_to_study(db, df, selected)
 
-    theme.section("Openings")
+    theme.section("📖 Openings")
     if opening_stats.empty:
         st.info("No openings yet.")
         return
+    openings = opening_stats[['opening_name', 'eco', 'games', 'wins', 'draws', 'losses', 'win_rate']].fillna({'eco': "—"})
+    win_colors = [_color(grades.win_rate_grade(r.win_rate, r.games)) for r in openings.itertuples()]
+    styled = openings.style.format({'win_rate': '{:.0%}'}).apply(lambda col: win_colors, subset=['win_rate'])
+    st.caption("Win rates are coloured once an opening has 5+ games.")
     st.dataframe(
-        opening_stats[['opening_name', 'eco', 'games', 'wins', 'draws', 'losses', 'win_rate']].fillna({'eco': "—"}),
+        styled,
         hide_index=True, width="stretch", height=min(38 + 35 * len(opening_stats), 460),
         column_config={
             'opening_name': st.column_config.TextColumn("Opening", width=280),
@@ -63,7 +80,7 @@ def render(df, opening_stats, provider, db):
             'wins': st.column_config.NumberColumn("W", width=44),
             'draws': st.column_config.NumberColumn("D", width=44),
             'losses': st.column_config.NumberColumn("L", width=44),
-            'win_rate': st.column_config.ProgressColumn("Win rate", format="percent", min_value=0, max_value=1, width=130),
+            'win_rate': st.column_config.Column("Win rate", width=90),
         },
     )
 

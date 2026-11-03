@@ -1,6 +1,7 @@
 import plotly.graph_objects as go
 import streamlit as st
 
+import grades
 import theme
 from eda import plot_rating_trend, plot_top_openings, plot_win_rate_by_color, plot_win_rate_by_opening
 from theme import COLORS
@@ -14,9 +15,9 @@ def _gauge(risk):
             axis=dict(range=[0, 10], tickcolor=COLORS['muted'], tickwidth=1),
             bar=dict(color=COLORS['text'], thickness=0.18),
             bgcolor='rgba(0,0,0,0)', borderwidth=0,
-            steps=[dict(range=[0, 3], color='rgba(43,182,115,0.38)'),
-                   dict(range=[3, 7], color='rgba(224,164,58,0.38)'),
-                   dict(range=[7, 10], color='rgba(229,83,75,0.40)')],
+            steps=[dict(range=[0, 3], color='rgba(74,222,128,0.38)'),
+                   dict(range=[3, 7], color='rgba(242,184,75,0.38)'),
+                   dict(range=[7, 10], color='rgba(242,113,110,0.40)')],
         ),
     ))
     fig.update_layout(title=f"Volatility · {theme.plain(risk['label'])}", height=272, margin=dict(l=32, r=32, t=56, b=12))
@@ -24,7 +25,7 @@ def _gauge(risk):
 
 
 def render(df, opening_stats, risk, pacing, analysis, time_stats):
-    theme.section("Style")
+    theme.section("🧭 Style")
     c1, c2, c3 = st.columns([1.1, 1, 1.6])
     with c1:
         theme.chart(_gauge(risk))
@@ -41,13 +42,21 @@ def render(df, opening_stats, risk, pacing, analysis, time_stats):
             st.caption(risk['feedback'])
             st.caption(pacing['feedback'])
 
-    theme.section("Accuracy")
+    theme.section("🎯 Accuracy")
     if analysis:
-        m = st.columns(4)
-        m[0].metric("ACPL", analysis['avg_acpl'], help="Average centipawn loss. Lower is better.")
-        m[1].metric("Blunders", f"{analysis['blunder_rate']}%")
-        m[2].metric("Mistakes", f"{analysis['mistake_rate']}%")
-        m[3].metric("Inaccuracies", f"{analysis['inaccuracy_rate']}%")
+        theme.grade_legend()
+
+        def graded(label, key, metric=None, suffix=""):
+            metric, value = metric or key, analysis[key]
+            return dict(label=label, value=f"{value}{suffix}", grade=grades.grade(metric, value),
+                        foot=grades.hint(metric))
+
+        theme.kpis([
+            graded("ACPL · avg centipawn loss", 'avg_acpl', 'acpl'),
+            graded("Blunders", 'blunder_rate', suffix="%"),
+            graded("Mistakes", 'mistake_rate', suffix="%"),
+            graded("Inaccuracies", 'inaccuracy_rate', suffix="%"),
+        ])
         st.write("")
         for col, phase in zip(st.columns(3), ("Opening", "Middlegame", "Endgame")):
             data = analysis.get('phases', {}).get(phase, {})
@@ -61,13 +70,15 @@ def render(df, opening_stats, risk, pacing, analysis, time_stats):
         st.info("No engine data yet. Pick games in **Games** → **Review**.", icon=":material/neurology:")
 
     if time_stats:
-        theme.section("Time per move")
-        for col, (label, key) in zip(st.columns(3), [("Opening", 'opening'), ("Middlegame", 'middlegame'), ("Endgame", 'endgame')]):
-            feedback = time_stats[f'{key}_feedback']
-            col.metric(label, f"{time_stats[f'{key}_avg']}s", help=feedback)
-            col.caption(feedback.split('. ', 1)[0])
+        theme.section("⏱️ Time per move")
+        cards = []
+        for label, key in [("Opening", 'opening'), ("Middlegame", 'middlegame'), ("Endgame", 'endgame')]:
+            status, _, tip = time_stats[f'{key}_feedback'].partition('. ')
+            cards.append(dict(label=label, value=f"{time_stats[f'{key}_avg']}s",
+                              grade=grades.time_grade(status), foot=f"{status}. {tip}"))
+        theme.kpis(cards)
 
-    theme.section("Trends")
+    theme.section("📈 Trends")
     c1, c2 = st.columns(2)
     theme.chart(plot_rating_trend(df), c1)
     theme.chart(plot_win_rate_by_color(df), c2)

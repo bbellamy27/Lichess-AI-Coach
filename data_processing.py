@@ -339,24 +339,24 @@ def calculate_pacing_metrics(df, time_control):
     if pacing_score <= 2: # Extremely Fast
         if win_rate > high_wr:
             label = "Intuitive Genius"
-            color = "#2BB673"
+            color = "#4ADE80"
             feedback = "Instant moves, and it works."
             improvement = "Sharpen it with complex tactics."
         else:
             label = "Suicidal Sprinter"
-            color = "#E07B2E"
+            color = "#F2716E"
             feedback = "Too fast, and it costs games."
             improvement = "Blunder-check before every move."
             
     elif pacing_score <= 4: # Fast
         if win_rate > high_wr:
             label = "Sharp Shooter"
-            color = "#2BB673"
+            color = "#4ADE80"
             feedback = "Fast and aggressive, and it pays off."
             improvement = "Pick openings that fit this style."
         else:
             label = "Impulsive Mover"
-            color = "#E07B2E"
+            color = "#F2716E"
             feedback = "Rushes critical moments."
             improvement = "Slow down only in complex spots."
             
@@ -368,7 +368,7 @@ def calculate_pacing_metrics(df, time_control):
             improvement = "Next: deeper strategic plans."
         else:
             label = "Drifting Aimlessly"
-            color = "#E0A43A"
+            color = "#F2B84B"
             feedback = "Normal pace, but no clear plan."
             improvement = "Set a goal for each phase."
             
@@ -380,7 +380,7 @@ def calculate_pacing_metrics(df, time_control):
             improvement = "Use patterns to speed up easy moves."
         else:
             label = "Time Trouble Addict"
-            color = "#E0A43A"
+            color = "#F2B84B"
             feedback = "Thinks too long, blunders in time trouble."
             improvement = "Play simple moves fast. Save time."
             
@@ -392,7 +392,7 @@ def calculate_pacing_metrics(df, time_control):
             improvement = "Polish technique with endgame studies."
         else:
             label = "Paralysis by Analysis"
-            color = "#E07B2E"
+            color = "#F2716E"
             feedback = "Overthinks everything."
             improvement = "Set a time limit per move."
 

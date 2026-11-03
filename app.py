@@ -8,7 +8,8 @@ st.set_page_config(page_title="Gambit AI · Personal chess coach",
                    layout="wide", initial_sidebar_state="auto")
 load_dotenv()
 
-import dataset  # noqa: E402  (imports below need page config set first)
+import dataset  # noqa: E402
+import grades  # noqa: E402  (imports below need page config set first)
 import theme  # noqa: E402
 from coach_ai import opening_perspective  # noqa: E402
 from data_processing import (calculate_analysis_metrics, calculate_pacing_metrics, calculate_risk_metrics,  # noqa: E402
@@ -75,7 +76,8 @@ fs = dataset.summary(df)
 theme.kpis([
     dict(label="Games", value=fs['games']),
     dict(label="Rating", value=fs['rating'], delta=fs['rating_change']),
-    dict(label="Win rate", value=f"{fs['win_rate']:.0%}"),
+    dict(label="Win rate", value=f"{fs['win_rate']:.0%}", grade=grades.grade('win_rate', fs['win_rate']),
+         foot=grades.hint('win_rate')),
     best_opening_kpi(df, 'white'),
     best_opening_kpi(df, 'black'),
 ])
@@ -98,7 +100,7 @@ opening_stats, risk, pacing, analysis, time_stats = (
 
 st.write("")
 tab_games, tab_perf, tab_insights, tab_coach, tab_vault = st.tabs(
-    ["Games", "Performance", "Insights", "AI Coach", "Vault"])
+    ["♟️ Games", "📊 Performance", "🧠 Insights", "🤖 AI Coach", "🗄️ Vault"])
 with tab_games:
     games.render(df, opening_stats, provider, db)
 with tab_perf:

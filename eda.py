@@ -3,7 +3,8 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 
-from theme import COLORS, DIVERGING, SEQUENTIAL
+import grades
+from theme import COLORS, DIVERGING, SEQUENTIAL, TONE
 
 OUTCOME_COLORS = {k: COLORS[k] for k in ('Win', 'Draw', 'Loss')}
 OUTCOME_ORDER = {'result': ['Win', 'Draw', 'Loss']}
@@ -49,8 +50,8 @@ def plot_rating_trend(df):
         data = data.groupby(data['date'].dt.normalize()).agg(user_rating=('user_rating', 'last')).reset_index()
     fig = px.line(data, x='date', y='user_rating', title="Rating Trend", labels={'date': '', 'user_rating': ''},
                   markers=daily)
-    fig.update_traces(line=dict(color=COLORS['primary'], width=2, shape='spline', smoothing=0.4),
-                      marker=dict(size=6), fill='tozeroy', fillcolor='rgba(215,38,31,0.10)',
+    fig.update_traces(line=dict(color=COLORS['data'], width=2, shape='spline', smoothing=0.4),
+                      marker=dict(size=6), fill='tozeroy', fillcolor='rgba(46,155,219,0.10)',
                       hovertemplate=('%{x|%b %d}' if daily else '%{x|%b %d, %H:%M}') + '<br><b>%{y}</b><extra></extra>')
     low, high = data['user_rating'].min(), data['user_rating'].max()
     pad = max(20, (high - low) * 0.15)
@@ -66,7 +67,7 @@ def plot_top_openings(df, n=10):
     top.columns = ['opening_name', 'games']
     fig = px.bar(top, x='games', y='opening_name', orientation='h', title=f"Most Played Openings",
                  labels={'opening_name': '', 'games': ''})
-    fig.update_traces(marker_color=COLORS['primary'], hovertemplate='%{y}<br><b>%{x} games</b><extra></extra>')
+    fig.update_traces(marker_color=COLORS['data'], hovertemplate='%{y}<br><b>%{x} games</b><extra></extra>')
     fig.update_layout(yaxis_categoryorder='total ascending', height=420)
     return _rounded(fig)
 
@@ -147,8 +148,8 @@ def plot_radar_chart(data):
     categories = data['categories'] + data['categories'][:1]
     values = data['values'] + data['values'][:1]
     fig = go.Figure(go.Scatterpolar(
-        r=values, theta=categories, fill='toself', fillcolor='rgba(215,38,31,0.25)',
-        line=dict(color=COLORS['primary'], width=2), marker=dict(size=8),
+        r=values, theta=categories, fill='toself', fillcolor='rgba(46,155,219,0.25)',
+        line=dict(color=COLORS['data'], width=2), marker=dict(size=8),
         hovertemplate='%{theta}<br><b>%{r:.1f}/10</b><extra></extra>',
     ))
     fig.update_layout(
@@ -167,7 +168,7 @@ def plot_move_time_distribution(raw_times):
         return None
     upper = max(10, float(pd.Series(raw_times).quantile(0.98)))
     fig = px.histogram(x=[t for t in raw_times if t <= upper], title="Time Spent per Move", labels={'x': 'Seconds per move'})
-    fig.update_traces(marker_color=COLORS['accent'], marker_line_width=1, marker_line_color=COLORS['surface'],
+    fig.update_traces(marker_color=COLORS['data'], marker_line_width=1, marker_line_color=COLORS['surface'],
                       hovertemplate='%{x}s<br><b>%{y} moves</b><extra></extra>')
     fig.update_traces(xbins=dict(start=0, end=upper, size=max(0.5, round(upper / 40, 1))))
     fig.update_layout(xaxis_range=[0, upper], yaxis_title=None, bargap=0.08)
@@ -193,7 +194,7 @@ def plot_repertoire(df, color, top=6):
                     hovertemplate='%{y}<br>' + outcome + 's: <b>%{x}</b><extra></extra>')
     for fam, total, pct in zip(counts.index, counts['games'], win_pct):
         fig.add_annotation(x=total, y=fam, text=f"<b>{pct:.0%}</b>", xanchor='left', xshift=8, showarrow=False,
-                           font=dict(color=COLORS['text'] if pct >= 0.5 else COLORS['muted'], size=12))
+                           font=dict(color=TONE[grades.win_rate_grade(pct, total)], size=12))
     fig.update_layout(title=f"As {color.title()}", barmode='stack', height=90 + 46 * len(counts), legend_traceorder='normal',
                       xaxis=dict(title=None, showgrid=False, showticklabels=False, range=[0, counts['games'].max() * 1.18]),
                       yaxis=dict(title=None, tickfont=dict(color=COLORS['text_2'], size=12)), bargap=0.38)

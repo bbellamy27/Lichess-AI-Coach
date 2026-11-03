@@ -7,6 +7,8 @@ import plotly.graph_objects as go
 import plotly.io as pio
 import streamlit as st
 
+import grades
+
 # --- Tokens ---
 # 60-30-10: warm graphite neutrals, raised surfaces, one crimson brand hue (from the logo).
 # Highlights use tints of the brand hue (monochromatic), so color always means something.
@@ -23,30 +25,33 @@ COLORS = {
     'primary_hi': '#B81F19',
     'accent': '#FF8A80',
     'tile': 'rgba(215,38,31,.16)',
+    # Neutral data colour: red/green are reserved for good/bad judgements
+    'data': '#2E9BDB',
     # Outcomes: validated for color-blind separation on the graphite surface
-    'Win': '#0FA3A3',
-    'Loss': '#E07B2E',
+    'Win': '#4ADE80',
+    'Loss': '#C93A3A',
     'Draw': '#C3C6CD',
     # Status
-    'good': '#2BB673',
-    'warning': '#E0A43A',
-    'critical': '#E5534B',
+    'good': '#4ADE80',
+    'warning': '#F2B84B',
+    'critical': '#F2716E',
 }
 
-SERIES = ['#D7261F', '#2E9BDB', '#B87A18', '#8F81F5']  # validated order; never reuse outcome colors
-SEQUENTIAL = ['#18191C', '#4A1A19', '#8C2420', '#D7261F', '#F7A39B']
+SERIES = ['#2E9BDB', '#B87A18', '#8F81F5', '#D8578C']  # validated order; never reuse outcome colors
+SEQUENTIAL = ['#18191C', '#173A5C', '#1F5E94', '#2E9BDB', '#A9D4F5']
 DIVERGING = [(0, '#2E9BDB'), (0.5, '#2A2C31'), (1, '#D7261F')]
 SANS = '"Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif'
 DISPLAY = '"Plus Jakarta Sans", "Inter", system-ui, -apple-system, "Segoe UI", sans-serif'
 
 
-def status_color(score, good=8, ok=5):
+# Text/indicator colour for each grade (green good, amber ok, red needs work)
+TONE = {grades.GOOD: COLORS['good'], grades.OK: COLORS['warning'], grades.BAD: COLORS['critical'],
+        grades.NEUTRAL: COLORS['muted']}
+
+
+def status_color(score):
     """Map a 0-10 score to a status color."""
-    if score >= good:
-        return COLORS['good']
-    if score >= ok:
-        return COLORS['warning']
-    return COLORS['critical']
+    return TONE[grades.score_grade(score)]
 
 
 # --- Plotly template: every chart inherits this ---
@@ -187,8 +192,12 @@ hr {{ border-color: var(--line) !important; }}
     line-height: 1.15; margin-top: 4px; display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }}
 .kpi.wide .kpi-value {{ font-family: var(--sans); font-size: 1rem; font-weight: 700; letter-spacing: 0; line-height: 1.3; }}
 .kpi-delta {{ font-family: var(--sans); font-size: 0.75rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; }}
-.kpi-delta.up {{ color: #2BB673; background: rgba(43,182,115,.14); }}
-.kpi-delta.down {{ color: #E07B2E; background: rgba(224,123,46,.14); }}
+.kpi-delta.up {{ color: #4ADE80; background: rgba(74,222,128,.14); }}
+.kpi-delta.down {{ color: #F2716E; background: rgba(242,113,110,.14); }}
+.kpi .card-label {{ display: flex; justify-content: space-between; align-items: center; gap: 6px; }}
+.grade-tag {{ font-size: 0.68rem; font-weight: 700; color: var(--tone); padding: 1px 7px; border-radius: 999px;
+    background: color-mix(in srgb, var(--tone) 14%, transparent); white-space: nowrap; }}
+.grade-legend {{ display: flex; gap: 14px; flex-wrap: wrap; font-size: 0.78rem; color: var(--muted); margin: 2px 0 10px; }}
 .kpi-wrap {{ container-type: inline-size; }}
 @container (max-width: 760px) {{
     .kpi-grid {{ grid-template-columns: repeat(6, 1fr); }}
@@ -333,9 +342,19 @@ def kpis(items):
             delta_html = f'<span class="kpi-delta {cls}">{"▲" if delta > 0 else "▼"} {abs(delta)}</span>'
         foot = f'<div class="card-foot">{it["foot"]}</div>' if it.get('foot') else ''
         cls = 'kpi wide' if it.get('wide') else 'kpi'
-        cells.append(f'<div class="{cls}"><div class="card-label">{esc(it["label"])}</div>'
-                     f'<div class="kpi-value">{esc(it["value"])}{delta_html}</div>{foot}</div>')
+        grade = it.get('grade')
+        value_style = f' style="color:{TONE[grade]}"' if grade else ''
+        tag = (f'<span class="grade-tag" style="--tone:{TONE[grade]}">{grades.LABELS[grade]}</span>'
+               if grade and grade != grades.NEUTRAL else '')
+        cells.append(f'<div class="{cls}"><div class="card-label">{esc(it["label"])}{tag}</div>'
+                     f'<div class="kpi-value"{value_style}>{esc(it["value"])}{delta_html}</div>{foot}</div>')
     _html(f'<div class="kpi-wrap"><div class="kpi-grid">{"".join(cells)}</div></div>')
+
+
+def grade_legend(note="Graded against standard chess benchmarks"):
+    dots = "".join(f'<span style="color:{TONE[g]};font-weight:600">{grades.LABELS[g]}</span>'
+                   for g in (grades.GOOD, grades.OK, grades.BAD))
+    _html(f'<div class="grade-legend">{dots}<span>· {esc(note)}</span></div>')
 
 
 def score_card(name, score, stats, note=None):

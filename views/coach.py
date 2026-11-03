@@ -6,7 +6,7 @@ from data_processing import get_opening_stats
 
 
 def render(df, speed, provider, stats, risk, pacing, time_stats, analysis):
-    theme.section("Coaching report")
+    theme.section("🤖 Coaching report")
     if coach_ai.missing_key(provider):
         st.warning(f"Add a {provider} key in the sidebar.")
         return

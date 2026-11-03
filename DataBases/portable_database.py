@@ -4,7 +4,7 @@ import pandas as pd
 from datetime import datetime
 import os
 import logging
-from typing import Dict, List, Optional, Any, Union
+from typing import Dict, List, Optional
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

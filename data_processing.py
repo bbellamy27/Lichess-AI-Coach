@@ -22,10 +22,8 @@ def process_games(games, username):
     for game in games:
         # --- Extract Basic Info ---
         game_id = game.get('id')
-        rated = game.get('rated', False)
         variant = game.get('variant', 'standard')
         speed = game.get('speed')
-        perf = game.get('perf')
         created_at = game.get('createdAt') # Timestamp in milliseconds
         
         # --- Extract Player Info ---
@@ -408,8 +406,6 @@ def calculate_pacing_metrics(df, time_control):
     }
 
 import chess
-import chess.pgn
-import io
 
 def calculate_time_stats(games, username, time_control="overall", pacing_label="N/A"):
     """
@@ -452,7 +448,6 @@ def calculate_time_stats(games, username, time_control="overall", pacing_label="
             white_user = game.get('white_user', 'Unknown')
             
         user_color = chess.WHITE if white_user.lower() == username.lower() else chess.BLACK
-        user_index = 0 if user_color == chess.WHITE else 1
         
         # Get clocks (centiseconds)
         clocks = game.get('clocks', [])
@@ -770,16 +765,7 @@ def calculate_analysis_metrics(games, username, pacing_label="Balanced"):
             current_eval_data = analysis[i]
             prev_eval_data = analysis[i-1] if i > 0 else {'eval': 20}
             
-            # Check for Blunder (Judgment)
-            # Lichess analysis sometimes has 'judgment' key in the move stream if explicitly requested or parsed
-            # But standard API 'analysis' list is just evals.
-            # However, we can infer blunders from large eval drops.
-            # Or better: The 'judgment' might be in the analysis stream if we are lucky, but usually it's separate.
-            # Let's use eval drop > 200 as proxy for blunder if judgment missing.
-            
-            is_blunder = False
-            # Try to find judgment in move comment or analysis data? No, simpler to use eval drop.
-            
+            # The API analysis list holds evals only, so classify errors by eval drop
             if is_user_move:
                 try:
                     curr = current_eval_data.get('eval', 0)
@@ -797,7 +783,6 @@ def calculate_analysis_metrics(games, username, pacing_label="Balanced"):
                     if loss >= 300: # Blunder threshold
                         phases[phase]['blunders'] += 1
                         game_blunders += 1
-                        is_blunder = True
                     elif loss >= 100:
                         game_mistakes += 1
                     elif loss >= 50:

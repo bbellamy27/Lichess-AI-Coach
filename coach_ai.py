@@ -167,7 +167,7 @@ Perspective rules (non-negotiable):
 Elo guidance: start from my game data, then use my Elo ({elo}) to set priorities. Typical focus by band:
 {ELO_BANDS}
 Structure the answer as: "Based on your Elo range ({elo})...", "According to your personal game data...",
-"Here's how these two interact...", "Here's what to work on next...". Tone: constructive, GM-style.
+"Here's what to work on next...". Under 100 words, constructive, GM-style.
 
 Game:
 - {row['white_user']} ({row['white_rating']}) vs {row['black_user']} ({row['black_rating']})

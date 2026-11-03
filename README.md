@@ -1,65 +1,46 @@
-Lichess Opening Coach
-Masters of Data Science Programming for Data Science Capstone
+# Gambit AI
 
-Overview
-The Lichess Opening Coach is a data driven application designed to help chess players improve by analyzing their real game data. Unlike generic advice, this tool:
-1. Fetches your actual game history from Lichess.org.
-2. Analyzes your performance across different openings, time controls, and game phases.
-3. Visualizes your playing style using advanced metrics (Win Rate Heatmaps, Personality Radars).
-4. Coaches you using a Large Language Model (Google Gemini) that interprets the data and provides a personalized training plan.
+Personal AI chess coach for Lichess players.
+Masters of Data Science, Programming for Data Science Capstone.
 
-Team Members
+## What it does
+1. Fetches a player's recent games from Lichess.
+2. Analyzes openings, time controls, pace, risk and engine accuracy by game phase.
+3. Visualizes their style (personality radar, repertoire, activity and result patterns).
+4. Coaches them with an AI model: a verdict, three fixes and one drill, built from their own games.
+
+## Team
 * Brian Bellamy (GitHub: https://github.com/bbellamy27)
 * Harold Gonzalez (GitHub: https://github.com/Ruptzy)
 
-Features
-* Data Pipeline: Automated fetching of games via Lichess API (NDJSON format) with local MongoDB caching.
-* Interactive EDA: 
-    * Win Rate by Color & Opening.
-    * Time Management Histograms.
-    * Personality Radar (Speed vs. Accuracy vs. Aggression).
-* AI Coach: Integration with Google Gemini 1.5 Flash to generate natural language reports identifying your One Thing to improve.
+## Setup
+Requires Python 3.8+. MongoDB is optional; without it the app uses a local SQLite database.
 
-Setup & Installation
+```bash
+pip install -r requirements.txt
+```
 
-Prerequisites
-* Python 3.8+
-* Optional MongoDB (The app falls back to a local SQLite based PortableDB if MongoDB is not detected).
+Optional `.env` file in the project folder:
 
-Installation
-1. Clone the Repository:
-    git clone https://github.com/bbellamy27/Lichess-opening-coach.git
-    cd Lichess-opening-coach
+```
+LICHESS_TOKEN=...      # needed if Lichess blocks anonymous game downloads (lichess.org/account/oauth/token, no scopes)
+GOOGLE_API_KEY=...     # only for the Google Gemini model
+GROQ_API_KEY=...       # only for the Groq model
+```
 
-2. Install Dependencies:
-    pip install -r requirements.txt
+The default AI model is free and needs no key. Keys can also be entered in the sidebar.
 
-3. Environment Setup:
-    * The app requires a Google Gemini API key for the AI Coach.
-    * You can enter this key directly in the Streamlit Sidebar OR create a .env file:
-    GOOGLE_API_KEY=your_api_key_here
-
-How to Run
-Run the Streamlit application:
+## Run
+```bash
 streamlit run app.py
+```
+Or double-click `run_app.bat` on Windows. The app opens at http://localhost:8501.
+Click **Try the demo** to explore it offline with a bundled sample dataset.
 
-The app will open in your default browser at http://localhost:8501.
+## Data sources
+* **Lichess API**: `https://lichess.org/api/games/user/{username}` (NDJSON).
+* **AI models**: a free hosted model by default, or Google Gemini / Groq with your own key.
 
-API & Data Sources
-1. Lichess API: Used to fetch user game data.
-    * Endpoint: https://lichess.org/api/games/user/{username}
-    * Format: NDJSON (Newline Delimited JSON)
-    * Auth: No API key required for public game data.
-2. Google Gemini API: Used for the AI Coach.
-    * Model: gemini-1.5-flash
-    * Purpose: RAG (Retrieval Augmented Generation) on player statistics.
-
-Project Structure
-* app.py: Main Streamlit interface.
-* api_client.py: Handles Lichess API connections and data ingestion.
-* data_processing.py: pandas logic for cleaning and metric calculation.
-* eda.py: Plotly visualization functions.
-* llm_client.py: Google Gemini integration logic.
-* presentation.html: Final Project Presentation slides.
+See `CODE_DOCUMENTATION.md` for the code structure.
 
 Created for the Data Science Capstone, Fall 2025.

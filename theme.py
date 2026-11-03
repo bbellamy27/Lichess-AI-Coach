@@ -177,7 +177,6 @@ hr {{ border-color: var(--line) !important; }}
 
 .card {{ background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 18px; height: 100%; }}
 .card-label {{ color: var(--muted); font-size: 0.78rem; font-weight: 500; }}
-.card-value {{ color: var(--text); font-size: 1rem; font-weight: 700; margin-top: 6px; line-height: 1.3; }}
 .card-foot {{ color: var(--text-2); font-size: 0.78rem; margin-top: 6px; }}
 .card-foot b {{ color: var(--accent); }}
 
@@ -338,11 +337,6 @@ def hero(eyebrow, title, chips=None):
 
 def section(title):
     _html(f'<div class="section"><div class="section-title">{esc(title)}</div></div>')
-
-
-def card(label, value, foot=None):
-    foot_html = f'<div class="card-foot">{foot}</div>' if foot else ''
-    _html(f'<div class="card"><div class="card-label">{esc(label)}</div><div class="card-value">{esc(value)}</div>{foot_html}</div>')
 
 
 def kpis(items):

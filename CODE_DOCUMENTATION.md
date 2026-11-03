@@ -1,46 +1,45 @@
-# Chess Improvement Coach for Lichess - Code Documentation
+# Gambit AI - Code Documentation
 
-The **Chess Improvement Coach for Lichess** is a Streamlit web application designed to help chess players analyze their games, visualize their performance, and receive personalized coaching advice using AI.
+**Gambit AI** is a Streamlit app that analyzes a player's Lichess games, visualizes their style and performance, and gives personalized coaching from an AI model.
 
 ## Module Breakdown
 
-### 1. `app.py` (Frontend)
-- **Purpose**: The main entry point of the application. It handles the UI layout, user inputs, and displays visualizations and reports.
-- **Key Features**:
-    - **Sidebar**: Configuration for username, game count, and API keys.
-    - **Dashboard**: A grid layout showing key metrics (Rating, Win Rate).
-    - **Tabs**: Organized sections for Data, EDA, Advanced Analytics, and AI Coaching.
-    - **Custom CSS**: Implements a "Dark Dashboard" theme.
+### `app.py` (Entry point)
+Sets up the page, picks the database (MongoDB if running, otherwise SQLite), renders the sidebar, the player header and KPI row, computes stats once per time-control filter, and lays out the five tabs.
 
-### 2. `api_client.py` (Backend - Data Fetching)
-- **Purpose**: Handles all interactions with the Lichess API.
-- **Key Functions**:
-    - `get_user_games(username, max_games)`: Fetches recent games in NDJSON format.
-    - Uses `requests` and `ndjson` libraries to stream and parse data efficiently.
+### `theme.py` (Design system)
+- Color tokens (graphite neutrals, violet brand, color-blind-checked win/draw/loss colors).
+- The `coach` Plotly template every chart inherits, and `chart()` to render figures with it.
+- Global CSS and small HTML components: `hero`, `section`, `kpis`, `score_card`, `insight`, the knight logo.
 
-### 3. `data_processing.py` (Backend - Data Logic)
-- **Purpose**: Cleans and transforms raw API data into a structured Pandas DataFrame.
-- **Key Functions**:
-    - `process_games(games, username)`: Extracts relevant fields (color, result, opening, time) and adds derived features (Hour of Day, Opponent Rating Bin).
-    - `get_opening_stats(df)`: Aggregates performance metrics by opening.
+### `dataset.py` (Data loading and shared stats)
+- `load_from_lichess`, `load_from_db` (with clock/engine backfill), `load_demo` (bundled `data/demo_games.json`).
+- `filter_speed`, `summary`, `best_opening`, `build_chat_context`, and `cached()` for per-filter stats.
 
-### 4. `eda.py` (Visualization)
-- **Purpose**: Generates interactive charts using Plotly.
-- **Key Functions**:
-    - `plot_rating_trend`: Line chart of rating history.
-    - `plot_win_rate_by_opening`: Bar chart of opening performance.
-    - `plot_time_heatmap`: Heatmap of playing activity (Day vs Hour).
-    - `plot_termination_pie`: Breakdown of how games ended.
+### `coach_ai.py` (AI coaching)
+- Provider selection (`Free Llama`, `Google Gemini`, `Groq`) and key checks.
+- `stream()` yields replies token by token (falls back to a single response).
+- `report_prompt()` builds the short, structured coaching report; `game_review_prompt()` reviews a single game.
 
-### 5. `llm_client.py` (AI Integration)
-- **Purpose**: Interfaces with Google's Gemini API to generate coaching reports.
-- **Key Functions**:
-    - `generate_coaching_report(player_stats, opening_stats)`: Constructs a prompt with player data and retrieves a structured analysis from the LLM.
+### `views/` (One module per screen)
+- `sidebar.py`: player input, data loading, AI settings, coach chat.
+- `games.py`: selectable games table, Stockfish + AI review, save to study, opening stats.
+- `performance.py`: style gauge, pace, phase accuracy, time per move, trend charts.
+- `insights.py`: style radar, move times, repertoire, activity and result patterns.
+- `coach.py`: on-demand streamed coaching report.
+- `vault.py`: PGN import and study management.
+
+### Backend
+- `api_client.py`: Lichess API (`get_user_games`, `get_games_by_ids`); sends `LICHESS_TOKEN` when set.
+- `data_processing.py`: turns raw games into a DataFrame and computes risk, pacing, time and accuracy metrics.
+- `eda.py`: Plotly chart builders.
+- `local_engine.py`: local Stockfish analysis (ACPL per side).
+- `puter_client.py`, `groq_client.py`, `llm_client.py`: non-streaming chat clients per provider.
+- `DataBases/`: MongoDB and portable SQLite storage, PGN parser and analytics CLI.
 
 ## Requirements
 - **Python 3.8+**
-- **Libraries**: `streamlit`, `pandas`, `requests`, `plotly`, `google-generativeai`, `python-dotenv`, `ndjson`
+- `pip install -r requirements.txt`
 
 ## How to Run
-1. Install dependencies: `pip install -r requirements.txt`
-2. Run the app: `streamlit run app.py`
+`streamlit run app.py` (or double-click `run_app.bat` on Windows).

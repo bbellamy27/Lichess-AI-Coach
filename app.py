@@ -16,7 +16,7 @@ from data_processing import (calculate_analysis_metrics, calculate_pacing_metric
                              calculate_time_stats, get_opening_stats)
 from DataBases.chess_database import ChessDatabaseManager  # noqa: E402
 from DataBases.portable_database import PortableDatabaseManager  # noqa: E402
-from views import coach, games, insights, performance, sidebar, vault  # noqa: E402
+from views import coach, games, insights, overview, performance, sidebar, vault  # noqa: E402
 
 
 @st.cache_resource
@@ -75,7 +75,7 @@ if df.empty:
 fs = dataset.summary(df)
 theme.kpis([
     dict(label="Games", value=fs['games']),
-    dict(label="Rating", value=fs['rating'], delta=fs['rating_change']),
+    dict(label="Rating", value=fs['rating'], delta=fs['rating_change'], foot="1200 casual · 2000 strong"),
     dict(label="Win rate", value=f"{fs['win_rate']:.0%}", grade=grades.grade('win_rate', fs['win_rate']),
          foot=grades.hint('win_rate')),
     best_opening_kpi(df, 'white'),
@@ -98,9 +98,11 @@ stats = dataset.cached(speed, compute_stats)
 opening_stats, risk, pacing, analysis, time_stats = (
     stats[k] for k in ('opening_stats', 'risk', 'pacing', 'analysis', 'time_stats'))
 
-st.write("")
-tab_games, tab_perf, tab_insights, tab_coach, tab_vault = st.tabs(
-    ["♟️ Games", "📊 Performance", "🧠 Insights", "🤖 AI Coach", "🗄️ Vault"])
+theme.glossary()
+tab_home, tab_games, tab_perf, tab_insights, tab_coach, tab_vault = st.tabs(
+    ["🏠 Overview", "♟️ Games", "📊 Performance", "🧠 Insights", "🤖 AI Coach", "🗄️ Vault"])
+with tab_home:
+    overview.render(df, fs, risk, pacing, analysis, time_stats)
 with tab_games:
     games.render(df, opening_stats, provider, db)
 with tab_perf:

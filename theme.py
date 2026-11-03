@@ -179,6 +179,7 @@ hr {{ border-color: var(--line) !important; }}
 
 .section {{ margin: 26px 0 10px; }}
 .section-title {{ font-family: var(--display); font-size: 1.2rem; font-weight: 800; color: var(--text); letter-spacing: -0.02em; }}
+.section-sub {{ color: var(--muted); font-size: 0.85rem; margin-top: 2px; }}
 
 .card {{ background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 18px; height: 100%; }}
 .card-label {{ color: var(--muted); font-size: 0.78rem; font-weight: 500; }}
@@ -262,6 +263,29 @@ hr {{ border-color: var(--line) !important; }}
 [data-testid="stChatMessageAvatarUser"] {{ background: var(--surface-2) !important; color: var(--text-2) !important; }}
 [data-testid="stChatMessageAvatarAssistant"] {{ background: var(--primary) !important; color: #fff !important; }}
 [data-testid="stChatMessage"] {{ background: transparent; }}
+.takeaway {{ display: flex; gap: 10px; align-items: flex-start; padding: 12px 16px; margin: 4px 0 14px;
+    border-radius: 12px; background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--primary);
+    color: var(--text); font-size: 0.95rem; font-weight: 600; }}
+.story {{ display: grid; grid-template-columns: 1.1fr 1fr 1fr; gap: 12px; }}
+@media (max-width: 900px) {{ .story {{ grid-template-columns: 1fr; }} }}
+.score-card {{ display: flex; gap: 18px; align-items: center; }}
+.score-ring {{ width: 92px; height: 92px; border-radius: 50%; flex: none; display: grid; place-items: center;
+    background: conic-gradient(var(--tone) calc(var(--pct) * 1%), var(--surface-2) 0); }}
+.score-ring span {{ width: 74px; height: 74px; border-radius: 50%; background: var(--surface); display: grid; place-items: center;
+    font-family: var(--display); font-size: 2.2rem; font-weight: 800; color: var(--tone); }}
+.story-title {{ color: var(--muted); font-size: 0.78rem; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; }}
+.story-big {{ font-family: var(--display); font-size: 1.15rem; font-weight: 800; color: var(--text); margin-top: 4px; line-height: 1.3; }}
+.story-sub {{ color: var(--text-2); font-size: 0.85rem; margin-top: 4px; }}
+.badge-row {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; }}
+.badge {{ display: flex; gap: 10px; align-items: center; padding: 12px 14px; border-radius: 14px;
+    background: var(--surface); border: 1px solid var(--line); }}
+.badge-icon {{ font-size: 1.5rem; }}
+.badge-name {{ font-weight: 700; color: var(--text); font-size: 0.9rem; }}
+.badge-desc {{ color: var(--muted); font-size: 0.76rem; }}
+.next {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }}
+.next-item {{ padding: 12px 14px; border-radius: 14px; background: var(--surface); border: 1px dashed var(--border); }}
+.next-item b {{ color: var(--text); }}
+.next-item div {{ color: var(--text-2); font-size: 0.84rem; margin-top: 2px; }}
 .footer {{ color: var(--muted); font-size: 0.72rem; margin-top: 20px; }}
 </style>
 """
@@ -327,8 +351,9 @@ def hero(eyebrow, title, chips=None):
     """)
 
 
-def section(title):
-    _html(f'<div class="section"><div class="section-title">{esc(title)}</div></div>')
+def section(title, sub=None):
+    sub_html = f'<div class="section-sub">{esc(sub)}</div>' if sub else ''
+    _html(f'<div class="section"><div class="section-title">{esc(title)}</div>{sub_html}</div>')
 
 
 def kpis(items):
@@ -346,8 +371,8 @@ def kpis(items):
         value_style = f' style="color:{TONE[grade]}"' if grade else ''
         tag = (f'<span class="grade-tag" style="--tone:{TONE[grade]}">{grades.LABELS[grade]}</span>'
                if grade and grade != grades.NEUTRAL else '')
-        cells.append(f'<div class="{cls}"><div class="card-label">{esc(it["label"])}{tag}</div>'
-                     f'<div class="kpi-value"{value_style}>{esc(it["value"])}{delta_html}</div>{foot}</div>')
+        cells.append(f'<div class="{cls}"><div class="card-label">{esc(it["label"])}</div>'
+                     f'<div class="kpi-value"{value_style}>{esc(it["value"])}{delta_html}{tag}</div>{foot}</div>')
     _html(f'<div class="kpi-wrap"><div class="kpi-grid">{"".join(cells)}</div></div>')
 
 
@@ -355,6 +380,55 @@ def grade_legend(note="Graded against standard chess benchmarks"):
     dots = "".join(f'<span style="color:{TONE[g]};font-weight:600">{grades.LABELS[g]}</span>'
                    for g in (grades.GOOD, grades.OK, grades.BAD))
     _html(f'<div class="grade-legend">{dots}<span>· {esc(note)}</span></div>')
+
+
+def takeaway(text):
+    """One plain-English sentence summarising a tab."""
+    _html(f'<div class="takeaway">📌 <span>{esc(text)}</span></div>')
+
+
+def story_cards(score, letter, tone, style, strength, strength_tone, leak, leak_tone):
+    _html(f"""
+    <div class="story">
+      <div class="card score-card">
+        <div class="score-ring" style="--tone:{tone};--pct:{score}"><span>{esc(letter)}</span></div>
+        <div><div class="story-title">Gambit Score</div>
+        <div class="story-big">{score}/100</div>
+        <div class="story-sub">Blends wins, accuracy and time use. A = elite, C = solid club player.</div></div>
+      </div>
+      <div class="card"><div class="story-title">💪 Biggest strength</div>
+        <div class="story-big" style="color:{strength_tone}">{esc(strength)}</div>
+        <div class="story-sub">Style: {esc(style)}</div></div>
+      <div class="card"><div class="story-title">🎯 Fix this first</div>
+        <div class="story-big" style="color:{leak_tone}">{esc(leak)}</div>
+        <div class="story-sub">The AI Coach turns this into a plan.</div></div>
+    </div>
+    """)
+
+
+def badges(items):
+    cells = "".join(f'<div class="badge"><div class="badge-icon">{icon}</div><div><div class="badge-name">{esc(name)}</div>'
+                    f'<div class="badge-desc">{esc(desc)}</div></div></div>' for icon, name, desc in items)
+    _html(f'<div class="badge-row">{cells}</div>')
+
+
+def next_steps(items):
+    cells = "".join(f'<div class="next-item"><b>{icon} {esc(tab)}</b><div>{esc(desc)}</div></div>' for icon, tab, desc in items)
+    _html(f'<div class="next">{cells}</div>')
+
+
+def glossary():
+    """Collapsible primer for people new to chess."""
+    with st.expander("❓ New to chess? How to read this"):
+        st.markdown("\n".join([
+            "- **Rating**: a skill number. ~1200 is a casual player, 2000 is strong, 2500+ is a master.",
+            "- **Win rate**: share of games won. 50% means you're even with opponents of your level.",
+            "- **Accuracy loss (ACPL)**: how much value you give away per move, measured by a chess engine. "
+            "Lower is better.",
+            "- **Blunder / mistake / inaccuracy**: big, medium and small errors.",
+            "- **Opening**: the named sequence of first moves, like the *Sicilian Defense*.",
+            "- **Colours**: ✅ green is good, ⚠️ amber is OK, 🔻 red needs work.",
+        ]))
 
 
 def score_card(name, score, stats, note=None):

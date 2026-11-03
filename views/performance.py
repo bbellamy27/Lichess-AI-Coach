@@ -20,12 +20,16 @@ def _gauge(risk):
                    dict(range=[7, 10], color='rgba(242,113,110,0.40)')],
         ),
     ))
-    fig.update_layout(title=f"Volatility · {theme.plain(risk['label'])}", height=272, margin=dict(l=32, r=32, t=56, b=12))
+    fig.update_layout(title=f"Risk-taking · {theme.plain(risk['label'])}", height=272, margin=dict(l=32, r=32, t=56, b=12))
     return fig
 
 
 def render(df, opening_stats, risk, pacing, analysis, time_stats):
-    theme.section("🧭 Style")
+    win_rate = (df['result'] == 'Win').mean()
+    (_, strength), (leak_grade, leak) = grades.findings(win_rate, analysis)
+    theme.takeaway(f"Biggest leak: {leak[0].lower() + leak[1:]}." if leak_grade == grades.BAD
+                   else f"Strongest area: {strength[0].lower() + strength[1:]}.")
+    theme.section("🧭 Style", "How risky your games get and how fast you play.")
     c1, c2, c3 = st.columns([1.1, 1, 1.6])
     with c1:
         theme.chart(_gauge(risk))
@@ -42,7 +46,7 @@ def render(df, opening_stats, risk, pacing, analysis, time_stats):
             st.caption(risk['feedback'])
             st.caption(pacing['feedback'])
 
-    theme.section("🎯 Accuracy")
+    theme.section("🎯 Accuracy", "Measured by a chess engine on analysed games.")
     if analysis:
         theme.grade_legend()
 
@@ -52,10 +56,10 @@ def render(df, opening_stats, risk, pacing, analysis, time_stats):
                         foot=grades.hint(metric))
 
         theme.kpis([
-            graded("ACPL · avg centipawn loss", 'avg_acpl', 'acpl'),
-            graded("Blunders", 'blunder_rate', suffix="%"),
-            graded("Mistakes", 'mistake_rate', suffix="%"),
-            graded("Inaccuracies", 'inaccuracy_rate', suffix="%"),
+            graded("Accuracy loss (ACPL)", 'avg_acpl', 'acpl'),
+            graded("Big mistakes", 'blunder_rate', suffix="%"),
+            graded("Medium mistakes", 'mistake_rate', suffix="%"),
+            graded("Small slips", 'inaccuracy_rate', suffix="%"),
         ])
         st.write("")
         for col, phase in zip(st.columns(3), ("Opening", "Middlegame", "Endgame")):
@@ -70,7 +74,7 @@ def render(df, opening_stats, risk, pacing, analysis, time_stats):
         st.info("No engine data yet. Pick games in **Games** → **Review**.", icon=":material/neurology:")
 
     if time_stats:
-        theme.section("⏱️ Time per move")
+        theme.section("⏱️ Time per move", "Seconds you spend per move at the start, middle and end of a game.")
         cards = []
         for label, key in [("Opening", 'opening'), ("Middlegame", 'middlegame'), ("Endgame", 'endgame')]:
             status, _, tip = time_stats[f'{key}_feedback'].partition('. ')
@@ -78,7 +82,7 @@ def render(df, opening_stats, risk, pacing, analysis, time_stats):
                               grade=grades.time_grade(status), foot=f"{status}. {tip}"))
         theme.kpis(cards)
 
-    theme.section("📈 Trends")
+    theme.section("📈 Trends", "Your rating over time and which openings work for you.")
     c1, c2 = st.columns(2)
     theme.chart(plot_rating_trend(df), c1)
     theme.chart(plot_win_rate_by_color(df), c2)

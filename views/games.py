@@ -27,8 +27,10 @@ def _opponent(row):
 
 
 def render(df, opening_stats, provider, db):
-    theme.section("♟️ Games")
-    st.caption("Tick games to review them with Stockfish + AI.")
+    counts = df['result'].value_counts()
+    theme.takeaway(f"{len(df)} games: {counts.get('Win', 0)} wins, {counts.get('Draw', 0)} draws, "
+                   f"{counts.get('Loss', 0)} losses. Tick a game below for an AI review.")
+    theme.section("♟️ Games", "Tick any game to get an engine + AI review of it.")
     table = pd.DataFrame({
         'Result': df['result'].map(RESULT_ICONS) + " · " + df['speed'].fillna('').str.title(),
         'Opponent': df.apply(_opponent, axis=1),
@@ -48,7 +50,7 @@ def render(df, opening_stats, provider, db):
             'Result': st.column_config.TextColumn(width=110),
             'Opponent': st.column_config.TextColumn(width=160, help="♔ you had White · ♚ you had Black · opponent rating"),
             'Opening': st.column_config.TextColumn(width=240),
-            'ACPL': st.column_config.TextColumn(width=50, help="Average centipawn loss. Lower is better."),
+            'ACPL': st.column_config.TextColumn(width=50, help="Accuracy loss: value given away per move. Lower is better."),
             'Date': st.column_config.DatetimeColumn(width=62, format="MMM D"),
             'Link': st.column_config.LinkColumn(width=54, display_text="Open ↗"),
         },
@@ -62,7 +64,7 @@ def render(df, opening_stats, provider, db):
         with c2.popover("Save", icon=":material/bookmark_add:", width="stretch"):
             _save_to_study(db, df, selected)
 
-    theme.section("📖 Openings")
+    theme.section("📖 Openings", "Which first moves you play and how often you win with them.")
     if opening_stats.empty:
         st.info("No openings yet.")
         return
@@ -75,7 +77,7 @@ def render(df, opening_stats, provider, db):
         hide_index=True, width="stretch", height=min(38 + 35 * len(opening_stats), 460),
         column_config={
             'opening_name': st.column_config.TextColumn("Opening", width=280),
-            'eco': st.column_config.TextColumn("ECO", width=56),
+            'eco': st.column_config.TextColumn("ECO", width=56, help="Standard opening code"),
             'games': st.column_config.NumberColumn("Games", width=64),
             'wins': st.column_config.NumberColumn("W", width=44),
             'draws': st.column_config.NumberColumn("D", width=44),

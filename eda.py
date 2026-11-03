@@ -106,7 +106,7 @@ def plot_opponent_scatter(df):
     if df.empty:
         return None
     data = df.groupby(['opponent_rating_bin', 'result']).size().reset_index(name='games')
-    fig = px.bar(data, x='opponent_rating_bin', y='games', color='result', title="Results by Opponent Rating",
+    fig = px.bar(data, x='opponent_rating_bin', y='games', color='result', title="Results vs. Weaker and Stronger Opponents",
                  category_orders={'opponent_rating_bin': RATING_BINS, **OUTCOME_ORDER},
                  color_discrete_map=OUTCOME_COLORS, labels={'opponent_rating_bin': 'Opponent rating', 'games': 'Games', 'result': ''})
     fig.update_traces(hovertemplate='%{x}: %{y} games<extra>%{fullData.name}</extra>')
@@ -136,7 +136,7 @@ def plot_correlation_heatmap(df):
     if data.empty:
         return None
     corr = data.corr().rename(index=labels, columns=labels)
-    fig = px.imshow(corr, title="What Moves Together", color_continuous_scale=DIVERGING, zmin=-1, zmax=1, text_auto='.2f')
+    fig = px.imshow(corr, title="Which Stats Are Linked (1 = move together)", color_continuous_scale=DIVERGING, zmin=-1, zmax=1, text_auto='.2f')
     fig.update_traces(xgap=2, ygap=2, hovertemplate='%{y} × %{x}<br><b>%{z:.2f}</b><extra></extra>')
     fig.update_layout(coloraxis_showscale=False)
     return fig

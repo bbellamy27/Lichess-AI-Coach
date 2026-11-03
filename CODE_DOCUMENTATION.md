@@ -38,8 +38,8 @@ Sets up the page, picks the database (MongoDB if running, otherwise SQLite), ren
 - `DataBases/`: MongoDB and portable SQLite storage, PGN parser and analytics CLI.
 
 ## Requirements
-- **Python 3.8+**
+- **Python 3.10+**
 - `pip install -r requirements.txt`
 
 ## How to Run
-`streamlit run app.py` (or double-click `run_app.bat` on Windows).
+Double-click `Run Gambit AI.bat` (Windows) or `Run Gambit AI.command` (macOS), or run `streamlit run app.py`.

@@ -24,8 +24,10 @@ class LocalEngine:
     def _init_engine(self):
         # Absolute path: Windows won't launch a relative executable path from subprocess
         here = os.path.join(os.path.dirname(os.path.abspath(__file__)), self.path)
-        path = shutil.which(self.path) or next(
-            (os.path.abspath(p) for p in (self.path, here) if os.path.isfile(p)), None)
+        # Bundled exe, then PATH, then common system installs (apt puts it in /usr/games)
+        path = shutil.which(self.path) or shutil.which("stockfish") or next(
+            (os.path.abspath(p) for p in (self.path, here, "/usr/games/stockfish", "/opt/homebrew/bin/stockfish")
+             if os.path.isfile(p)), None)
         if not path:
             raise FileNotFoundError("Stockfish executable not found. Please install Stockfish and ensure it is "
                                     "in your PATH or the project directory.")

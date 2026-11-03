@@ -344,7 +344,7 @@ def calculate_pacing_metrics(df, time_control):
             improvement = "Sharpen it with complex tactics."
         else:
             label = "Suicidal Sprinter"
-            color = "#E5534B"
+            color = "#E07B2E"
             feedback = "Too fast, and it costs games."
             improvement = "Blunder-check before every move."
             
@@ -356,14 +356,14 @@ def calculate_pacing_metrics(df, time_control):
             improvement = "Pick openings that fit this style."
         else:
             label = "Impulsive Mover"
-            color = "#E5534B"
+            color = "#E07B2E"
             feedback = "Rushes critical moments."
             improvement = "Slow down only in complex spots."
             
     elif pacing_score <= 6: # Average
         if win_rate > high_wr:
             label = "Balanced Pacer"
-            color = "#8F81F5"
+            color = "#2E9BDB"
             feedback = "Well-managed clock."
             improvement = "Next: deeper strategic plans."
         else:
@@ -375,7 +375,7 @@ def calculate_pacing_metrics(df, time_control):
     elif pacing_score <= 8: # Slow
         if win_rate > high_wr:
             label = "Deep Thinker"
-            color = "#8F81F5"
+            color = "#2E9BDB"
             feedback = "Slow, accurate, strong calculation."
             improvement = "Use patterns to speed up easy moves."
         else:
@@ -387,12 +387,12 @@ def calculate_pacing_metrics(df, time_control):
     else: # Extremely Slow (9-10)
         if win_rate > high_wr:
             label = "Grind Master"
-            color = "#8F81F5"
+            color = "#2E9BDB"
             feedback = "Grinds opponents down in long endgames."
             improvement = "Polish technique with endgame studies."
         else:
             label = "Paralysis by Analysis"
-            color = "#E5534B"
+            color = "#E07B2E"
             feedback = "Overthinks everything."
             improvement = "Set a time limit per move."
 

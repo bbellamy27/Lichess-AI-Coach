@@ -50,7 +50,7 @@ def plot_rating_trend(df):
     fig = px.line(data, x='date', y='user_rating', title="Rating Trend", labels={'date': '', 'user_rating': ''},
                   markers=daily)
     fig.update_traces(line=dict(color=COLORS['primary'], width=2, shape='spline', smoothing=0.4),
-                      marker=dict(size=6), fill='tozeroy', fillcolor='rgba(124,108,242,0.10)',
+                      marker=dict(size=6), fill='tozeroy', fillcolor='rgba(215,38,31,0.10)',
                       hovertemplate=('%{x|%b %d}' if daily else '%{x|%b %d, %H:%M}') + '<br><b>%{y}</b><extra></extra>')
     low, high = data['user_rating'].min(), data['user_rating'].max()
     pad = max(20, (high - low) * 0.15)
@@ -80,7 +80,7 @@ def plot_win_rate_by_opening(opening_stats, min_games=5):
         return _empty(title, f"Not enough games yet<br>(need {min_games}+ games in an opening)")
     data['win_pct'] = data['win_rate'] * 100
     fig = px.bar(data, x='win_pct', y='opening_name', orientation='h', title=title,
-                 color='win_rate', color_continuous_scale=[(0, COLORS['Loss']), (0.5, COLORS['border']), (1, COLORS['primary'])],
+                 color='win_rate', color_continuous_scale=[(0, COLORS['Loss']), (0.5, COLORS['border']), (1, COLORS['Win'])],
                  range_color=[0, 1], labels={'opening_name': '', 'win_pct': 'Win rate (%)'},
                  custom_data=['games'], text_auto='.0f')
     fig.update_traces(hovertemplate='%{y}<br><b>%{x:.1f}%</b> over %{customdata[0]} games<extra></extra>',
@@ -147,7 +147,7 @@ def plot_radar_chart(data):
     categories = data['categories'] + data['categories'][:1]
     values = data['values'] + data['values'][:1]
     fig = go.Figure(go.Scatterpolar(
-        r=values, theta=categories, fill='toself', fillcolor='rgba(124,108,242,0.25)',
+        r=values, theta=categories, fill='toself', fillcolor='rgba(215,38,31,0.25)',
         line=dict(color=COLORS['primary'], width=2), marker=dict(size=8),
         hovertemplate='%{theta}<br><b>%{r:.1f}/10</b><extra></extra>',
     ))

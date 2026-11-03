@@ -8,7 +8,7 @@ import plotly.io as pio
 import streamlit as st
 
 # --- Tokens ---
-# 60-30-10: warm graphite neutrals, raised surfaces, one violet brand hue.
+# 60-30-10: warm graphite neutrals, raised surfaces, one crimson brand hue (from the logo).
 # Highlights use tints of the brand hue (monochromatic), so color always means something.
 COLORS = {
     'page': '#111214',
@@ -19,13 +19,13 @@ COLORS = {
     'text': '#EDEDEF',
     'text_2': '#B4B6BD',
     'muted': '#8A8D95',
-    'primary': '#7C6CF2',
-    'primary_hi': '#8F81F5',
-    'accent': '#B3A9FF',
-    'tile': 'rgba(124,108,242,.14)',
+    'primary': '#D7261F',
+    'primary_hi': '#E8392F',
+    'accent': '#FF8A80',
+    'tile': 'rgba(215,38,31,.16)',
     # Outcomes: validated for color-blind separation on the graphite surface
     'Win': '#0FA3A3',
-    'Loss': '#E5534B',
+    'Loss': '#E07B2E',
     'Draw': '#C3C6CD',
     # Status
     'good': '#2BB673',
@@ -33,9 +33,9 @@ COLORS = {
     'critical': '#E5534B',
 }
 
-SERIES = ['#7C6CF2', '#B87A18', '#2E9BDB', '#D8578C']  # validated order; never reuse outcome colors
-SEQUENTIAL = ['#18191C', '#352F6B', '#5547C4', '#7C6CF2', '#C9C2FF']
-DIVERGING = [(0, '#E5534B'), (0.5, '#2A2C31'), (1, '#7C6CF2')]
+SERIES = ['#D7261F', '#2E9BDB', '#B87A18', '#8F81F5']  # validated order; never reuse outcome colors
+SEQUENTIAL = ['#18191C', '#4A1A19', '#8C2420', '#D7261F', '#F7A39B']
+DIVERGING = [(0, '#2E9BDB'), (0.5, '#2A2C31'), (1, '#D7261F')]
 SANS = '"Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif'
 DISPLAY = '"Plus Jakarta Sans", "Inter", system-ui, -apple-system, "Segoe UI", sans-serif'
 
@@ -86,13 +86,13 @@ CSS = f"""
 html, body, .stApp, [data-testid="stSidebar"], button, input, textarea {{ font-family: var(--sans) !important; }}
 .stApp {{
     background:
-        radial-gradient(1200px 700px at 100% -10%, rgba(124,108,242,0.26), transparent 62%),
+        radial-gradient(1200px 700px at 100% -10%, rgba(215,38,31,0.26), transparent 62%),
         radial-gradient(1000px 650px at -5% 110%, rgba(15,163,163,0.13), transparent 60%),
-        radial-gradient(800px 480px at 45% 45%, rgba(124,108,242,0.06), transparent 70%),
+        radial-gradient(800px 480px at 45% 45%, rgba(215,38,31,0.06), transparent 70%),
         linear-gradient(180deg, #17161F 0%, var(--page) 60%);
     background-attachment: fixed;
 }}
-[data-testid="stSidebar"] {{ background: linear-gradient(180deg, rgba(124,108,242,0.07), transparent 40%), var(--surface) !important; }}
+[data-testid="stSidebar"] {{ background: linear-gradient(180deg, rgba(215,38,31,0.07), transparent 40%), var(--surface) !important; }}
 .block-container {{ padding-top: 2rem; max-width: 1320px; }}
 header[data-testid="stHeader"] {{ background: transparent; }}
 h1, h2, h3, h4 {{ font-family: var(--display) !important; color: var(--text); letter-spacing: -0.02em; }}
@@ -137,7 +137,7 @@ h1, h2, h3, h4 {{ font-family: var(--display) !important; color: var(--text); le
 .stButton > button:hover {{ border-color: var(--accent); transform: translateY(-1px); }}
 .stButton > button[kind="primary"] {{
     background: var(--primary); border: none; color: #fff;
-    box-shadow: 0 10px 28px -14px rgba(124,108,242,.9);
+    box-shadow: 0 10px 28px -14px rgba(215,38,31,.9);
 }}
 .stButton > button[kind="primary"]:hover {{ background: var(--primary-hi); }}
 
@@ -158,7 +158,7 @@ hr {{ border-color: var(--line) !important; }}
 
 /* --- Components --- */
 .hero {{ position: relative; overflow: hidden; padding: 26px 30px; border-radius: 20px; margin-bottom: 18px;
-    background: linear-gradient(135deg, rgba(124,108,242,0.16), rgba(24,25,28,0.95) 55%); border: 1px solid var(--line); }}
+    background: linear-gradient(135deg, rgba(215,38,31,0.16), rgba(24,25,28,0.95) 55%); border: 1px solid var(--line); }}
 .hero::after {{ content: ""; position: absolute; inset: 0 0 0 auto; width: 46%;
     background: repeating-conic-gradient(rgba(255,255,255,0.035) 0 25%, transparent 0 50%) 0 0 / 40px 40px;
     -webkit-mask-image: linear-gradient(90deg, transparent, #000 80%); mask-image: linear-gradient(90deg, transparent, #000 80%); }}
@@ -190,7 +190,7 @@ hr {{ border-color: var(--line) !important; }}
 .kpi.wide .kpi-value {{ font-family: var(--sans); font-size: 1rem; font-weight: 700; letter-spacing: 0; line-height: 1.3; }}
 .kpi-delta {{ font-family: var(--sans); font-size: 0.75rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; }}
 .kpi-delta.up {{ color: #2BB673; background: rgba(43,182,115,.14); }}
-.kpi-delta.down {{ color: #E5534B; background: rgba(229,83,75,.14); }}
+.kpi-delta.down {{ color: #E07B2E; background: rgba(224,123,46,.14); }}
 .kpi-wrap {{ container-type: inline-size; }}
 @container (max-width: 760px) {{
     .kpi-grid {{ grid-template-columns: repeat(6, 1fr); }}

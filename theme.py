@@ -160,7 +160,7 @@ hr {{ border-color: var(--line) !important; }}
 .hero::after {{ content: ""; position: absolute; inset: 0 0 0 auto; width: 46%;
     background: repeating-conic-gradient(rgba(255,255,255,0.035) 0 25%, transparent 0 50%) 0 0 / 40px 40px;
     -webkit-mask-image: linear-gradient(90deg, transparent, #000 80%); mask-image: linear-gradient(90deg, transparent, #000 80%); }}
-.hero .hero-art {{ position: absolute; right: 18px; bottom: -14px; width: 190px; height: 190px; opacity: .16; z-index: 0 !important;
+.hero .hero-art {{ position: absolute; right: 28px; bottom: 10px; width: 150px; height: 150px; opacity: .18; z-index: 0 !important;
     filter: drop-shadow(0 0 24px rgba(124,108,242,.6)); }}
 .hero > * {{ position: relative; z-index: 1; }}
 .eyebrow {{ font-size: 0.7rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--accent); font-weight: 700; }}
@@ -263,21 +263,25 @@ def chart(fig, where=st):
                            config={'displayModeBar': False, 'displaylogo': False})
 
 
-# Knight mark: an original faceted knight head (angular, blade-cut style)
+# Knight mark: an aggressive geometric knight (head down, jaw open, ears pinned) on a heavy plinth
 _KNIGHT = (
-    # Silhouette: open jaw with teeth, heavy brow, swept blade mane
-    '<path d="M20 97 L26 80 L40 64 L34 66 L20 70 L12 68 L14 64 L17 62 L19 65 L22 62 L25 65 L28 61 L31 60 '
-    'L24 58 L21 61 L18 58 L15 61 L12 58 L5 56 L9 48 L15 46 L24 38 L34 31 L45 29 L50 20 L56 14 L60 1 L68 13 '
-    'L79 5 L77 16 L91 11 L85 22 L98 21 L89 31 L99 36 L89 42 L96 51 L86 54 L84 70 L82 97 Z" fill="{body}"/>'
-    # Shards
-    '<path d="M24 38 L45 29 L40 52 Z M40 64 L56 44 L86 54 L84 70 Z M31 60 L40 52 L40 64 Z" fill="{shade}" opacity=".30"/>'
-    '<path d="M56 14 L60 1 L68 13 L79 5 L77 16 L91 11 L85 22 L98 21 L89 31 L99 36 L89 42 L96 51 L86 54 L66 26 Z" '
-    'fill="{shade}" opacity=".20"/>'
-    '<path d="M22 97 L28 84 L82 84 L82 97 Z" fill="{shade}" opacity=".24"/>'
-    # Brow, eye, nostril
-    '<path d="M30 35 L52 26 L49 32 L33 38 Z" fill="{shade}" opacity=".55"/>'
-    '<path d="M34 40 L49 34 L44 42 Z" fill="{eye}"/>'
-    '<path d="M9 51 L16 48 L14 53 Z" fill="{shade}"/>'
+    # Head and neck: lowered, thrusting forward, open jaw, pinned ear, blade mane
+    '<path d="M27 81 L23 71 L35 62 L38 58 L15 62 L5 60 L17 55 L3 52 L8 44 L12 41 L26 30 L34 26 L41 24 L45 19 '
+    'L61 4 L55 18 L62 14 L73 5 L71 17 L83 13 L79 25 L93 23 L85 35 L97 39 L87 47 L89 64 L85 81 Z" fill="{body}"/>'
+    # Shading plane over the crest and back of the neck
+    '<path d="M55 18 L62 14 L73 5 L71 17 L83 13 L79 25 L93 23 L85 35 L97 39 L87 47 L89 64 L85 81 L62 81 L60 46 Z" '
+    'fill="{shade}" opacity=".22"/>'
+    # Heavy plinth, separated by a gap
+    '<path d="M22 85 H90 L88 90 H24 Z M18 92 H94 V98 H18 Z" fill="{body}"/>'
+    # Cuts: brow, jaw muscle, neck muscle, nostril
+    '<g fill="none" stroke="{shade}" stroke-linecap="round">'
+    '<path d="M23 31 L43 24" stroke-width="2.6"/>'
+    '<path d="M38 58 Q42 46 31 37" stroke-width="2"/>'
+    '<path d="M42 77 Q53 60 47 43" stroke-width="2" opacity=".5"/>'
+    '<path d="M8 47 L15 44" stroke-width="2.2"/></g>'
+    # Narrow slanted eye with an ember glint
+    '<path d="M27 35 L41 29 L38 35 Z" fill="{shade}"/>'
+    '<path d="M33 33.5 L39 31 L37.6 33.6 Z" fill="{eye}"/>'
 )
 
 
@@ -291,7 +295,8 @@ LOGO = ('<svg viewBox="0 0 34 34" width="34" height="34" xmlns="http://www.w3.or
         '<defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8F81F5"/>'
         '<stop offset="1" stop-color="#4A3DB8"/></linearGradient></defs>'
         '<rect width="34" height="34" rx="9" fill="url(#lg)"/>'
-        '<g transform="translate(3.5 3) scale(.28)">' + _KNIGHT.format(body="#fff", shade="#2A1F6E", eye="#E5534B") + '</g></svg>')
+        '<g transform="translate(4 3.5) scale(.265)">'
+        + _KNIGHT.format(body="#fff", shade="#3A2FA0", eye="#E5534B") + '</g></svg>')
 
 _ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">{}</svg>'
 ICONS = {
@@ -327,7 +332,7 @@ def hero(eyebrow, title, chips=None):
     chip_html = "".join(f'<span class="chip">{c}</span>' for c in (chips or []))
     _html(f"""
     <div class="hero">
-        {knight_svg(body="#B3A9FF", shade="#111214", eye="#E5534B", cls="hero-art")}
+        {knight_svg(body="#B3A9FF", shade="#18191C", eye="#E5534B", cls="hero-art")}
         <div class="eyebrow">{esc(eyebrow)}</div>
         <div class="hero-title">{title}</div>
         {f'<div class="hero-chips">{chip_html}</div>' if chip_html else ''}

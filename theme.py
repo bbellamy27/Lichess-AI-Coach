@@ -20,7 +20,7 @@ COLORS = {
     'text_2': '#B4B6BD',
     'muted': '#8A8D95',
     'primary': '#D7261F',
-    'primary_hi': '#E8392F',
+    'primary_hi': '#B81F19',
     'accent': '#FF8A80',
     'tile': 'rgba(215,38,31,.16)',
     # Outcomes: validated for color-blind separation on the graphite surface
@@ -86,13 +86,12 @@ CSS = f"""
 html, body, .stApp, [data-testid="stSidebar"], button, input, textarea {{ font-family: var(--sans) !important; }}
 .stApp {{
     background:
-        radial-gradient(1200px 700px at 100% -10%, rgba(215,38,31,0.26), transparent 62%),
+        radial-gradient(1100px 620px at 100% -10%, rgba(215,38,31,0.16), transparent 62%),
         radial-gradient(1000px 650px at -5% 110%, rgba(15,163,163,0.13), transparent 60%),
-        radial-gradient(800px 480px at 45% 45%, rgba(215,38,31,0.06), transparent 70%),
-        linear-gradient(180deg, #17161F 0%, var(--page) 60%);
+                linear-gradient(180deg, #17161F 0%, var(--page) 60%);
     background-attachment: fixed;
 }}
-[data-testid="stSidebar"] {{ background: linear-gradient(180deg, rgba(215,38,31,0.07), transparent 40%), var(--surface) !important; }}
+[data-testid="stSidebar"] {{ background: linear-gradient(180deg, rgba(215,38,31,0.04), transparent 35%), var(--surface) !important; }}
 .block-container {{ padding-top: 2rem; max-width: 1320px; }}
 header[data-testid="stHeader"] {{ background: transparent; }}
 h1, h2, h3, h4 {{ font-family: var(--display) !important; color: var(--text); letter-spacing: -0.02em; }}
@@ -137,7 +136,7 @@ h1, h2, h3, h4 {{ font-family: var(--display) !important; color: var(--text); le
 .stButton > button:hover {{ border-color: var(--accent); transform: translateY(-1px); }}
 .stButton > button[kind="primary"] {{
     background: var(--primary); border: none; color: #fff;
-    box-shadow: 0 10px 28px -14px rgba(215,38,31,.9);
+    box-shadow: 0 8px 22px -12px rgba(215,38,31,.7);
 }}
 .stButton > button[kind="primary"]:hover {{ background: var(--primary-hi); }}
 
@@ -157,13 +156,12 @@ h1, h2, h3, h4 {{ font-family: var(--display) !important; color: var(--text); le
 hr {{ border-color: var(--line) !important; }}
 
 /* --- Components --- */
-.hero {{ position: relative; overflow: hidden; padding: 26px 30px; border-radius: 20px; margin-bottom: 18px;
-    background: linear-gradient(135deg, rgba(215,38,31,0.16), rgba(24,25,28,0.95) 55%); border: 1px solid var(--line); }}
-.hero::after {{ content: ""; position: absolute; inset: 0 0 0 auto; width: 46%;
-    background: repeating-conic-gradient(rgba(255,255,255,0.035) 0 25%, transparent 0 50%) 0 0 / 40px 40px;
-    -webkit-mask-image: linear-gradient(90deg, transparent, #000 80%); mask-image: linear-gradient(90deg, transparent, #000 80%); }}
-.hero .hero-art {{ position: absolute; right: 24px; top: 50%; transform: translateY(-50%); height: 128%; opacity: .55;
-    z-index: 0 !important; pointer-events: none; }}
+.hero {{ position: relative; overflow: hidden; padding: 26px 30px; min-height: 150px; box-sizing: border-box; padding-right: 190px; border-radius: 20px; margin-bottom: 18px;
+    background: linear-gradient(120deg, rgba(24,25,28,0.96) 45%, rgba(215,38,31,0.14)); border: 1px solid var(--line); }}
+.hero .hero-art {{ position: absolute; right: 20px; top: 12px; bottom: 12px; height: calc(100% - 24px);
+    aspect-ratio: 1; object-fit: contain; z-index: 0 !important; pointer-events: none;
+    filter: drop-shadow(0 6px 18px rgba(0,0,0,.45)); }}
+@media (max-width: 640px) {{ .hero .hero-art {{ height: 64px; top: 14px; bottom: auto; right: 14px; }} }}
 .hero > * {{ position: relative; z-index: 1; }}
 .eyebrow {{ font-size: 0.7rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--accent); font-weight: 700; }}
 .hero-title {{ font-family: var(--display); font-size: clamp(1.9rem, 3.6vw, 3rem); font-weight: 800; color: var(--text);
@@ -236,12 +234,13 @@ hr {{ border-color: var(--line) !important; }}
 .step + .step {{ border-left: 1px solid var(--line); }}
 .step-t {{ color: var(--text); font-weight: 700; font-size: 0.92rem; }}
 .step-s {{ color: var(--muted); font-size: 0.8rem; }}
+@media (max-width: 640px) {{ .hero {{ padding-right: 90px; }} .empty-logo {{ width: 120px; height: 120px; }} }}
 @media (max-width: 760px) {{ .steps {{ grid-template-columns: 1fr; }} .step + .step {{ border-left: none; border-top: 1px solid var(--line); }} }}
 
 .brand {{ display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }}
-.brand-mark {{ width: 38px; height: 38px; display: grid; place-items: center; }}
+.brand-mark {{ width: 44px; height: 44px; flex: none; display: grid; place-items: center; }}
 .brand-mark img {{ width: 100%; height: 100%; object-fit: contain; }}
-.empty-logo {{ width: 150px; height: 150px; object-fit: contain; margin: 0 auto 6px; display: block;
+.empty-logo {{ width: 168px; height: 168px; object-fit: contain; margin: 0 auto 6px; display: block;
     filter: drop-shadow(0 10px 30px rgba(229,83,75,.25)); }}
 .brand-name {{ font-family: var(--display); font-weight: 800; font-size: 1.15rem; color: var(--text); letter-spacing: -0.02em; }}
 

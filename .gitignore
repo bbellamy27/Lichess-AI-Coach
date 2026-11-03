@@ -8,3 +8,6 @@ Debug/
 
 # Local Databases
 *.db
+
+# Local server log
+streamlit.log

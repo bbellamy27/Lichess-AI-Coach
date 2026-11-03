@@ -1,340 +1,210 @@
+"""Plotly chart builders. Styling comes from the 'coach' template in theme.py."""
+import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-import pandas as pd
 
-# Chess.com Color Palette
-COLORS = {
-    'Win': '#81b64c',   # Green
-    'Loss': '#ca3431',  # Red
-    'Draw': '#a7a6a2',  # Gray
-    'Background': '#262522',
-    'Text': '#e6edf3'
-}
+import grades
+from theme import COLORS, DIVERGING, SEQUENTIAL, TONE
+
+OUTCOME_COLORS = {k: COLORS[k] for k in ('Win', 'Draw', 'Loss')}
+OUTCOME_ORDER = {'result': ['Win', 'Draw', 'Loss']}
+RATING_BINS = ["<1000", "1000-1200", "1200-1400", "1400-1600", "1600-1800", "1800-2000", "2000-2200", "2200+"]
+DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+
+
+def _empty(title, message):
+    fig = go.Figure()
+    fig.update_layout(
+        title=title, xaxis_visible=False, yaxis_visible=False, height=320,
+        annotations=[dict(text=message, xref='paper', yref='paper', showarrow=False, font=dict(color=COLORS['muted']))],
+    )
+    return fig
+
+
+def _rounded(fig):
+    """Thin bars with a surface-colored gap between stacked segments."""
+    fig.update_traces(marker_line_width=2, marker_line_color=COLORS['surface'], selector=dict(type='bar'))
+    return fig
+
 
 def plot_win_rate_by_color(df):
-    """
-    Generate a bar chart showing the result distribution (Win/Loss/Draw) by color.
-    """
     if df.empty:
         return None
-        
-    win_rates = df.groupby(['user_color', 'result']).size().reset_index(name='count')
-    
-    fig = px.bar(win_rates, x='user_color', y='count', color='result', 
-                 title="Games Played by Color",
-                 color_discrete_map=COLORS,
-                 labels={'user_color': 'Color', 'count': 'Games'})
-    
-    fig.update_layout(
-        plot_bgcolor=COLORS['Background'],
-        paper_bgcolor=COLORS['Background'],
-        font_color=COLORS['Text']
-    )
-    return fig
+    data = df.groupby(['user_color', 'result']).size().reset_index(name='games')
+    data['user_color'] = data['user_color'].str.title()
+    fig = px.bar(data, x='user_color', y='games', color='result', title="Results by Color",
+                 color_discrete_map=OUTCOME_COLORS, category_orders=OUTCOME_ORDER,
+                 labels={'user_color': '', 'games': 'Games', 'result': ''})
+    fig.update_traces(hovertemplate='%{x}: %{y} games<extra>%{fullData.name}</extra>')
+    fig.update_layout(bargap=0.55, yaxis_title=None)
+    return _rounded(fig)
+
 
 def plot_rating_trend(df):
-    """
-    Generate a line chart showing the user's rating over time.
-    """
     if df.empty:
         return None
-        
-    df_sorted = df.sort_values('date')
-    
-    fig = px.line(df_sorted, x='date', y='user_rating', title="Rating Trend",
-                  markers=True)
-    
-    fig.update_traces(line_color=COLORS['Win'])
-    fig.update_layout(
-        plot_bgcolor=COLORS['Background'],
-        paper_bgcolor=COLORS['Background'],
-        font_color=COLORS['Text'],
-        xaxis_title="Date",
-        yaxis_title="User Rating",
-        xaxis=dict(
-            tickformat="%B %d %H:%M"  # e.g. September 03 14:30
-        )
-    )
+    data = df.sort_values('date')
+    daily = (data['date'].max() - data['date'].min()).days > 2
+    if daily:
+        # One point per day (closing rating) reads better than per-game noise over weeks
+        data = data.groupby(data['date'].dt.normalize()).agg(user_rating=('user_rating', 'last')).reset_index()
+    fig = px.line(data, x='date', y='user_rating', title="Rating Trend", labels={'date': '', 'user_rating': ''},
+                  markers=daily)
+    fig.update_traces(line=dict(color=COLORS['data'], width=2, shape='spline', smoothing=0.4),
+                      marker=dict(size=6), fill='tozeroy', fillcolor='rgba(46,155,219,0.10)',
+                      hovertemplate=('%{x|%b %d}' if daily else '%{x|%b %d, %H:%M}') + '<br><b>%{y}</b><extra></extra>')
+    low, high = data['user_rating'].min(), data['user_rating'].max()
+    pad = max(20, (high - low) * 0.15)
+    fig.update_layout(hovermode='x unified', yaxis_range=[low - pad, high + pad],
+                      xaxis_tickformat='%b %d' if daily else '%H:%M')
     return fig
+
 
 def plot_top_openings(df, n=10):
-    """
-    Generate a horizontal bar chart of the most frequently played openings.
-    """
     if df.empty:
         return None
-        
-    top_openings = df['opening_name'].value_counts().head(n).reset_index()
-    top_openings.columns = ['opening_name', 'count']
-    
-    fig = px.bar(top_openings, x='count', y='opening_name', orientation='h',
-                 title=f"Top {n} Openings",
-                 labels={'opening_name': 'Opening', 'count': 'Games'})
-    
-    fig.update_traces(marker_color=COLORS['Draw'])
-    fig.update_layout(
-        yaxis={'categoryorder':'total ascending'},
-        plot_bgcolor=COLORS['Background'],
-        paper_bgcolor=COLORS['Background'],
-        font_color=COLORS['Text']
-    )
-    return fig
+    top = df['opening_name'].value_counts().head(n).reset_index()
+    top.columns = ['opening_name', 'games']
+    fig = px.bar(top, x='games', y='opening_name', orientation='h', title=f"Most Played Openings",
+                 labels={'opening_name': '', 'games': ''})
+    fig.update_traces(marker_color=COLORS['data'], hovertemplate='%{y}<br><b>%{x} games</b><extra></extra>')
+    fig.update_layout(yaxis_categoryorder='total ascending', height=420)
+    return _rounded(fig)
+
 
 def plot_win_rate_by_opening(opening_stats, min_games=5):
-    """
-    Generate a bar chart of win rates for openings.
-    """
+    title = f"Win Rate by Opening (≥{min_games} games)"
     if opening_stats.empty:
         return None
-        
-    filtered = opening_stats[opening_stats['games'] >= min_games].head(15).copy()
-    
-    if filtered.empty:
-        # Return a blank figure with annotation
-        fig = go.Figure()
-        fig.update_layout(
-            xaxis={"visible": False},
-            yaxis={"visible": False},
-            annotations=[
-                {
-                    "text": "Not enough games played<br>(Must have at least 5 games per opening)",
-                    "xref": "paper",
-                    "yref": "paper",
-                    "showarrow": False,
-                    "font": {"size": 16, "color": COLORS['Text']}
-                }
-            ],
-            plot_bgcolor=COLORS['Background'],
-            paper_bgcolor=COLORS['Background'],
-            title=f"Win Rate by Opening (min {min_games} games)"
-        )
-        return fig
+    data = opening_stats[opening_stats['games'] >= min_games].head(15).copy()
+    if data.empty:
+        return _empty(title, f"Not enough games yet<br>(need {min_games}+ games in an opening)")
+    data['win_pct'] = data['win_rate'] * 100
+    fig = px.bar(data, x='win_pct', y='opening_name', orientation='h', title=title,
+                 color='win_rate', color_continuous_scale=[(0, COLORS['Loss']), (0.5, COLORS['border']), (1, COLORS['Win'])],
+                 range_color=[0, 1], labels={'opening_name': '', 'win_pct': 'Win rate (%)'},
+                 custom_data=['games'], text_auto='.0f')
+    fig.update_traces(hovertemplate='%{y}<br><b>%{x:.1f}%</b> over %{customdata[0]} games<extra></extra>',
+                      textfont_color=COLORS['text'])
+    fig.update_layout(yaxis_categoryorder='total ascending', xaxis_range=[0, 100], coloraxis_showscale=False, height=420)
+    return _rounded(fig)
 
-    filtered['win_rate_pct'] = filtered['win_rate'] * 100
-    
-    fig = px.bar(filtered, x='win_rate_pct', y='opening_name', orientation='h',
-                 title=f"Win Rate by Opening (min {min_games} games)",
-                 labels={'opening_name': 'Opening', 'win_rate_pct': 'Win Rate (%)'},
-                 color='win_rate', 
-                 color_continuous_scale=[(0, COLORS['Loss']), (0.5, COLORS['Draw']), (1, COLORS['Win'])],
-                 text_auto='.1f') # Show value on bar
-                 
-    fig.update_layout(
-        yaxis={'categoryorder':'total ascending'},
-        xaxis_title="Win Rate (%)",
-        xaxis=dict(range=[0, 100]), # Fix range to 0-100
-        plot_bgcolor=COLORS['Background'],
-        paper_bgcolor=COLORS['Background'],
-        font_color=COLORS['Text']
-    )
-    return fig
 
 def plot_time_heatmap(df):
-    """
-    Generate a heatmap showing activity by Hour of Day and Day of Week.
-    """
     if df.empty:
         return None
-        
-    heatmap_data = df.groupby(['day_of_week', 'hour']).size().reset_index(name='count')
-    heatmap_pivot = heatmap_data.pivot(index='day_of_week', columns='hour', values='count').fillna(0)
-    
-    days_order = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-    heatmap_pivot = heatmap_pivot.reindex(days_order)
-    
-    fig = px.imshow(heatmap_pivot, 
-                    labels=dict(x="Hour", y="Day", color="Games"),
-                    title="Activity Heatmap",
-                    color_continuous_scale='Viridis') # Keep Viridis for heatmap contrast
-                    
-    fig.update_layout(
-        plot_bgcolor=COLORS['Background'],
-        paper_bgcolor=COLORS['Background'],
-        font_color=COLORS['Text']
-    )
+    pivot = (df.groupby(['day_of_week', 'hour']).size().unstack(fill_value=0)
+             .reindex(index=DAYS, columns=range(24), fill_value=0))
+    fig = px.imshow(pivot, title="When You Play", labels=dict(x="Hour of day", y="", color="Games"),
+                    color_continuous_scale=[COLORS['surface_2']] + SEQUENTIAL[1:], aspect='auto')
+    fig.update_traces(xgap=2, ygap=2, hovertemplate='%{y} %{x}:00<br><b>%{z} games</b><extra></extra>')
+    fig.update_layout(coloraxis_showscale=False, xaxis=dict(dtick=3, showgrid=False), yaxis=dict(showgrid=False))
     return fig
+
 
 def plot_opponent_scatter(df):
-    """
-    Generate a stacked bar chart of results against different opponent rating bins.
-    """
     if df.empty:
         return None
-        
-    bin_stats = df.groupby(['opponent_rating_bin', 'result']).size().reset_index(name='count')
-    bin_order = ["<1000", "1000-1200", "1200-1400", "1400-1600", "1600-1800", "1800-2000", "2000-2200", "2200+"]
-    
-    fig = px.bar(bin_stats, x='opponent_rating_bin', y='count', color='result',
-                 title="Results by Opponent Rating",
-                 category_orders={"opponent_rating_bin": bin_order},
-                 color_discrete_map=COLORS,
-                 labels={'opponent_rating_bin': 'Rating Range', 'count': 'Games'})
-                 
-    fig.update_layout(
-        plot_bgcolor=COLORS['Background'],
-        paper_bgcolor=COLORS['Background'],
-        font_color=COLORS['Text'],
-        barmode='stack'
-    )
-    return fig
+    data = df.groupby(['opponent_rating_bin', 'result']).size().reset_index(name='games')
+    fig = px.bar(data, x='opponent_rating_bin', y='games', color='result', title="Results vs. Weaker and Stronger Opponents",
+                 category_orders={'opponent_rating_bin': RATING_BINS, **OUTCOME_ORDER},
+                 color_discrete_map=OUTCOME_COLORS, labels={'opponent_rating_bin': 'Opponent rating', 'games': 'Games', 'result': ''})
+    fig.update_traces(hovertemplate='%{x}: %{y} games<extra>%{fullData.name}</extra>')
+    return _rounded(fig)
+
 
 def plot_termination_pie(df):
-    """
-    Generate a donut chart showing how games ended.
-    """
     if df.empty:
         return None
-        
-    term_counts = df['termination'].value_counts().reset_index()
-    term_counts.columns = ['termination', 'count']
-    
-    fig = px.pie(term_counts, values='count', names='termination', 
-                 title="Game Results (By Type)",
-                 hole=0.5,
-                 color_discrete_sequence=[COLORS['Win'], COLORS['Loss'], COLORS['Draw'], '#e2b714'])
-                 
-    fig.update_layout(
-        plot_bgcolor=COLORS['Background'],
-        paper_bgcolor=COLORS['Background'],
-        font_color=COLORS['Text']
-    )
+    data = df['termination'].fillna('unknown').str.title().value_counts().reset_index()
+    data.columns = ['termination', 'games']
+    fig = px.pie(data, values='games', names='termination', title="How Games End", hole=0.62)
+    fig.update_traces(marker_line_color=COLORS['surface'], marker_line_width=2, texttemplate='%{percent:.0%}',
+                      textposition='inside', insidetextorientation='horizontal', sort=True,
+                      hovertemplate='%{label}<br><b>%{value} games</b> (%{percent:.0%})<extra></extra>')
+    fig.update_layout(uniformtext=dict(minsize=11, mode='hide'),
+                      legend=dict(orientation='v', x=1, xanchor='left', y=0.5, yanchor='middle'))
     return fig
+
 
 def plot_correlation_heatmap(df):
-    """
-    Generate a correlation heatmap for numerical variables.
-    """
     if df.empty:
         return None
-    
-    # Select numerical columns for correlation
-    # We map 'result' to a numeric value for correlation: Win=1, Draw=0.5, Loss=0
-    df_corr = df.copy()
-    result_map = {'Win': 1, 'Draw': 0.5, 'Loss': 0}
-    df_corr['result_numeric'] = df_corr['result'].map(result_map)
-    
-    cols = ['user_rating', 'opponent_rating', 'ply_count', 'result_numeric']
-    
-    # Enforce numeric types
-    for col in cols:
-        if col in df_corr.columns:
-            df_corr[col] = pd.to_numeric(df_corr[col], errors='coerce')
-            
-    # Drop rows with NaNs in these columns
-    df_corr = df_corr.dropna(subset=cols)
-    
-    if df_corr.empty:
+    labels = {'user_rating': 'My rating', 'opponent_rating': 'Opp rating', 'ply_count': 'Game length', 'result_numeric': 'Result'}
+    data = df.assign(result_numeric=df['result'].map({'Win': 1, 'Draw': 0.5, 'Loss': 0}))
+    data = data[list(labels)].apply(pd.to_numeric, errors='coerce').dropna()
+    if data.empty:
         return None
-        
-    corr_matrix = df_corr[cols].corr()
-    
-    # Rename for better display
-    labels = {
-        'user_rating': 'My Rating',
-        'opponent_rating': 'Opp Rating',
-        'ply_count': 'Moves (Ply)',
-        'result_numeric': 'Result'
-    }
-    
-    fig = px.imshow(corr_matrix,
-                    x=[labels.get(c, c) for c in corr_matrix.columns],
-                    y=[labels.get(c, c) for c in corr_matrix.columns],
-                    title="Correlation Matrix",
-                    color_continuous_scale='RdBu_r', # Red-Blue diverging
-                    zmin=-1, zmax=1)
-                    
+    corr = data.corr().rename(index=labels, columns=labels)
+    fig = px.imshow(corr, title="Which Stats Are Linked (1 = move together)", color_continuous_scale=DIVERGING, zmin=-1, zmax=1, text_auto='.2f')
+    fig.update_traces(xgap=2, ygap=2, hovertemplate='%{y} × %{x}<br><b>%{z:.2f}</b><extra></extra>')
+    fig.update_layout(coloraxis_showscale=False)
+    return fig
+
+
+def plot_radar_chart(player, typical, typical_label):
+    """Skill radar (higher = better) with a dashed outline of a typical player at this rating."""
+    if not player:
+        return None
+    axes = list(player)
+    labels = [a if player[a] is not None else f"{a} (no data)" for a in axes]
+    loop = lambda values: values + values[:1]
+    fig = go.Figure()
+    fig.add_trace(go.Scatterpolar(
+        r=loop([typical[a] for a in axes]), theta=loop(labels), name=typical_label,
+        line=dict(color=COLORS['muted'], width=1.5, dash='dash'), fill='none', mode='lines',
+        hovertemplate='%{theta}<br>' + typical_label + ': <b>%{r:.1f}/10</b><extra></extra>',
+    ))
+    fig.add_trace(go.Scatterpolar(
+        r=loop([player[a] or 0 for a in axes]), theta=loop(labels), name="You", fill='toself',
+        fillcolor='rgba(46,155,219,0.25)', line=dict(color=COLORS['data'], width=2), marker=dict(size=8),
+        hovertemplate='%{theta}<br>You: <b>%{r:.1f}/10</b><extra></extra>',
+    ))
     fig.update_layout(
-        plot_bgcolor=COLORS['Background'],
-        paper_bgcolor=COLORS['Background'],
-        font_color=COLORS['Text']
+        title="Skills vs. Your Rating Level", showlegend=True, margin=dict(l=80, r=80, t=72, b=40),
+        legend=dict(orientation='h', yanchor='bottom', y=-0.16, xanchor='center', x=0.5),
+        polar=dict(bgcolor='rgba(0,0,0,0)',
+                   radialaxis=dict(range=[0, 10], tickvals=[5, 10], gridcolor=COLORS['line'], linecolor='rgba(0,0,0,0)',
+                                   tickfont=dict(color=COLORS['muted'], size=10), angle=90, tickangle=90),
+                   angularaxis=dict(rotation=90, direction='clockwise', gridcolor=COLORS['line'], linecolor=COLORS['border'],
+                                    tickfont=dict(color=COLORS['text_2'], size=12))),
     )
     return fig
 
-def plot_radar_chart(data):
-    """
-    Generate a radar chart for player personality metrics.
-    data: dict with 'categories' (list) and 'values' (list)
-    """
-    if not data:
-        return None
-        
-    fig = go.Figure()
-    
-    fig.add_trace(go.Scatterpolar(
-        r=data['values'],
-        theta=data['categories'],
-        fill='toself',
-        name='Player Stats',
-        line_color=COLORS['Win']
-    ))
-    
-    fig.update_layout(
-        polar=dict(
-            radialaxis=dict(
-                visible=True,
-                range=[0, 10],
-                tickfont=dict(color='gray'),
-                gridcolor='#444'
-            ),
-            bgcolor=COLORS['Background']
-        ),
-        plot_bgcolor=COLORS['Background'],
-        paper_bgcolor=COLORS['Background'],
-        font_color=COLORS['Text'],
-        showlegend=False,
-        title="Player Personality Radar"
-    )
-    return fig
 
 def plot_move_time_distribution(raw_times):
-    """
-    Generate a histogram of move times.
-    """
     if not raw_times:
         return None
-        
-    fig = px.histogram(x=raw_times, nbins=50, 
-                       title="Move Time Distribution",
-                       labels={'x': 'Seconds per Move', 'y': 'Count'})
-                       
-    fig.update_traces(marker_color=COLORS['Draw'])
-    fig.update_layout(
-        plot_bgcolor=COLORS['Background'],
-        paper_bgcolor=COLORS['Background'],
-        font_color=COLORS['Text'],
-        xaxis_title="Time (seconds)",
-        yaxis_title="Number of Moves",
-        xaxis=dict(range=[0, 60]) # Focus on first minute
-    )
+    upper = max(10, float(pd.Series(raw_times).quantile(0.98)))
+    fig = px.histogram(x=[t for t in raw_times if t <= upper], title="Time Spent per Move", labels={'x': 'Seconds per move'})
+    fig.update_traces(marker_color=COLORS['data'], marker_line_width=1, marker_line_color=COLORS['surface'],
+                      hovertemplate='%{x}s<br><b>%{y} moves</b><extra></extra>')
+    fig.update_traces(xbins=dict(start=0, end=upper, size=max(0.5, round(upper / 40, 1))))
+    fig.update_layout(xaxis_range=[0, upper], yaxis_title=None, bargap=0.08)
     return fig
 
-def plot_opening_sunburst(df):
-    """
-    Generate a sunburst chart of openings (ECO codes -> Names).
-    """
-    if df.empty:
+
+def plot_repertoire(df, color, top=6):
+    """Top opening families for one color: games played, split into wins / draws / losses."""
+    data = df[(df['user_color'] == color) & df['opening_name'].notna()]
+    if data.empty:
         return None
-        
-    # Group by ECO and Name
-    # We use a simple hierarchy: Color -> Opening Name
-    
-    # Prepare data
-    df_sun = df.groupby(['user_color', 'opening_name']).size().reset_index(name='count')
-    
-    # Filter for readability (remove rare openings)
-    df_sun = df_sun[df_sun['count'] > 2]
-    
-    if df_sun.empty:
-        return None
-    
-    fig = px.sunburst(df_sun, path=['user_color', 'opening_name'], values='count',
-                      title="Opening Repertoire",
-                      color='user_color',
-                      color_discrete_map={'white': '#f0f0f0', 'black': '#404040'})
-                      
-    fig.update_layout(
-        plot_bgcolor=COLORS['Background'],
-        paper_bgcolor=COLORS['Background'],
-        font_color=COLORS['Text']
-    )
-    return fig
+    family = data['opening_name'].str.split(':').str[0].str.strip()
+    counts = (data.assign(family=family).groupby(['family', 'result']).size()
+              .unstack(fill_value=0).reindex(columns=['Win', 'Draw', 'Loss'], fill_value=0))
+    counts['games'] = counts.sum(axis=1)
+    counts = counts.sort_values('games', ascending=False).head(top).iloc[::-1]  # biggest on top
+    win_pct = counts['Win'] / counts['games']
+
+    fig = go.Figure()
+    for outcome in ('Win', 'Draw', 'Loss'):
+        fig.add_bar(y=counts.index, x=counts[outcome], name=outcome, orientation='h',
+                    marker_color=OUTCOME_COLORS[outcome],
+                    hovertemplate='%{y}<br>' + outcome + 's: <b>%{x}</b><extra></extra>')
+    for fam, total, pct in zip(counts.index, counts['games'], win_pct):
+        fig.add_annotation(x=total, y=fam, text=f"<b>{pct:.0%}</b>", xanchor='left', xshift=8, showarrow=False,
+                           font=dict(color=TONE[grades.win_rate_grade(pct, total)], size=12))
+    fig.update_layout(title=f"As {color.title()}", barmode='stack', height=90 + 46 * len(counts), legend_traceorder='normal',
+                      xaxis=dict(title=None, showgrid=False, showticklabels=False, range=[0, counts['games'].max() * 1.18]),
+                      yaxis=dict(title=None, tickfont=dict(color=COLORS['text_2'], size=12)), bargap=0.38)
+    return _rounded(fig)

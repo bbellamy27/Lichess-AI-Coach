@@ -1,7 +1,6 @@
+import os
 import requests
 import ndjson
-import pandas as pd
-from datetime import datetime
 
 class LichessClient:
     """
@@ -13,6 +12,16 @@ class LichessClient:
     def __init__(self):
         """Initialize the LichessClient."""
         self.base_url = "https://lichess.org/api"
+        # Optional personal API token (lichess.org/account/oauth/token, no scopes needed)
+        self.token = os.getenv("LICHESS_TOKEN")
+        self.last_error = None
+
+    def _headers(self):
+        """Build request headers, adding the auth token when one is set."""
+        headers = {'Accept': 'application/x-ndjson'}
+        if self.token:
+            headers['Authorization'] = f"Bearer {self.token}"
+        return headers
 
     def get_user_games(self, username, max_games=100):
         """
@@ -38,14 +47,9 @@ class LichessClient:
             'evals': 'true'        # Enable analysis data for accuracy metrics
         }
         
-        # Headers to specify the content type
-        headers = {
-            'Accept': 'application/x-ndjson'
-        }
-
         try:
             # Make the GET request to Lichess API
-            response = requests.get(url, params=params, headers=headers)
+            response = requests.get(url, params=params, headers=self._headers())
             response.raise_for_status() # Raise an error for bad status codes (4xx, 5xx)
             
             # Parse the NDJSON (Newline Delimited JSON) response
@@ -54,7 +58,10 @@ class LichessClient:
             return games
             
         except requests.exceptions.RequestException as e:
-            print(f"Error fetching games: {e}")
+            status = getattr(e.response, 'status_code', None)
+            body = e.response.text[:200] if e.response is not None else ''
+            self.last_error = f"{status or type(e).__name__}: {body or e} (token {'sent' if self.token else 'not set'})"
+            print(f"Error fetching games: {self.last_error}")
             return []
 
     def get_games_by_ids(self, game_ids):
@@ -78,10 +85,6 @@ class LichessClient:
             'opening': 'true'
         }
         
-        headers = {
-            'Accept': 'application/x-ndjson'
-        }
-        
         # Limit to 300 IDs per request (Lichess limit)
         # We will just do one batch for now or loop if needed.
         # But for simplicity, let's assume the caller handles batching or we do it here.
@@ -90,7 +93,7 @@ class LichessClient:
         try:
             # Join IDs with comma
             ids_str = ",".join(game_ids)
-            response = requests.post(url, params=params, headers=headers, data=ids_str)
+            response = requests.post(url, params=params, headers=self._headers(), data=ids_str)
             response.raise_for_status()
             games = response.json(cls=ndjson.Decoder)
             return games

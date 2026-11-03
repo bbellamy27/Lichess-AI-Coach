@@ -93,7 +93,7 @@ def stream(provider, messages, context=None, fallback=None):
         yield BUSY
 
 
-def report_prompt(stats, risk, pacing, time_stats, analysis, white_stats, black_stats):
+def report_prompt(stats, risk, pacing, time_stats, analysis, white_stats, black_stats, prof=None):
     """Request for the analysis half of the report; the plan half comes from local_coach.plan_sections."""
     def openings(table):
         if table is None or table.empty:
@@ -118,6 +118,16 @@ def report_prompt(stats, risk, pacing, time_stats, analysis, white_stats, black_
         for phase, data in analysis.get('phases', {}).items():
             lines.append(f"{phase}: score {data.get('score')}/10, accuracy {data.get('accuracy_percent')}%, "
                          f"blunders {data.get('blunder_rate')}%.")
+    if prof:
+        lines.append(f"How games are lost: {prof['losses']} losses, of which {prof['time_losses']} on time, "
+                     f"{prof['resign_losses']} by resignation, {prof['mate_losses']} by checkmate.")
+        for label in ('stronger', 'similar', 'weaker'):
+            rec = prof[label]
+            if rec['games']:
+                lines.append(f"Vs. {label} opponents (100+ points {'above' if label == 'stronger' else 'below' if label == 'weaker' else 'either side'}): "
+                             f"{rec['win_rate']:.0%} wins in {rec['games']} games.")
+        if prof['by_color']:
+            lines.append("Win rate by colour: " + ", ".join(f"{c} {v:.0%}" for c, v in prof['by_color'].items()) + ".")
 
     return f"""You are a grandmaster-level chess coach writing a personal coaching report and training plan.
 Use ONLY the player's data below. Quote their real numbers. Tailor every recommendation to their rating:
@@ -127,7 +137,11 @@ Player data:
 
 Write the analysis part of their report in markdown (about 350-400 words; a training plan, drills and
 targets are added separately, so do not write those). Be specific, explain the chess reasons behind
-each number, and stay encouraging. Use exactly these sections:
+each number, and stay encouraging. Write like a strong coach: use precise chess terminology such as
+imbalances (minor pieces, pawn structure, king safety, space, development), initiative and tempo,
+prophylaxis, piece activity, converting an advantage (simplify, trade pieces not pawns), and using a
+space advantage to tighten the grip before a pawn break. Add a short plain-English gloss the first time
+you use a technical term. Use exactly these sections:
 
 ## Summary
 3-4 sentences: who this player is, their style, and the single biggest opportunity.

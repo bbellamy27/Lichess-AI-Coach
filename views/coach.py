@@ -23,16 +23,16 @@ def render(df, speed, provider, stats, risk, pacing, time_stats, analysis):
         if clicked:
             openings = get_opening_stats(df)
             white, black = get_opening_stats(df, color="white"), get_opening_stats(df, color="black")
-            plan = local_coach.plan_sections(stats, analysis, time_stats, openings, white, black)
-            full_backup = (local_coach.analysis_sections(stats, risk, pacing, analysis, time_stats, openings)
-                           + "\n\n" + plan)
-            # The AI writes the analysis; the training plan is always built from the data and added after it
-            prompt = coach_ai.report_prompt(stats, risk, pacing, time_stats, analysis, white, black)
-            text = st.write_stream(coach_ai.stream(provider, [{"role": "user", "content": prompt}],
-                                                   fallback=full_backup))
-            if not text.startswith(coach_ai.FALLBACK_NOTE):
-                text += "\n\n" + st.write_stream(coach_ai.stream(coach_ai.OFFLINE, [], fallback=plan))
-            reports[key] = text
+            prof = local_coach.profile(df)
+            # 1) At a glance, instantly  2) the AI's analysis (built-in if the AI is down)  3) the training plan
+            glance = local_coach.at_a_glance(stats, analysis, time_stats, openings, prof)
+            st.markdown(glance)
+            prompt = coach_ai.report_prompt(stats, risk, pacing, time_stats, analysis, white, black, prof)
+            backup = local_coach.analysis_sections(stats, risk, pacing, analysis, time_stats, openings, prof)
+            written = st.write_stream(coach_ai.stream(provider, [{"role": "user", "content": prompt}], fallback=backup))
+            plan = local_coach.plan_sections(stats, risk, df, analysis, time_stats, openings, white, black)
+            planned = st.write_stream(coach_ai.stream(coach_ai.OFFLINE, [], fallback=plan))
+            reports[key] = "\n\n".join([glance, written, planned])
             st.rerun()  # redraw with the Regenerate label
         elif key in reports:
             st.markdown(reports[key])

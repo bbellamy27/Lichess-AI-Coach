@@ -1,18 +1,20 @@
 """Picks the AI provider, builds coaching prompts and streams replies."""
 import json
 import os
+import time
 
 import requests
 
 from groq_client import GroqClient
 from llm_client import LLMClient
-from puter_client import PuterClient
 
-FREE = "Free Llama (Default)"
+FREE = "Free AI (Default)"
+OFFLINE = "Built-in coach (offline)"
 GEMINI = "Google Gemini"
 GROQ = "Groq (Llama 3)"
 PROVIDERS = {
     FREE: None,
+    OFFLINE: None,
     GEMINI: "GOOGLE_API_KEY",
     GROQ: "GROQ_API_KEY",
 }
@@ -24,18 +26,10 @@ def missing_key(provider):
     return key if key and not os.getenv(key) else None
 
 
-def get_client(provider):
-    """Return a client for the provider, falling back to the free one when no key is set."""
-    if provider == GEMINI and not missing_key(GEMINI):
-        return LLMClient()
-    if provider == GROQ and not missing_key(GROQ):
-        return GroqClient()
-    return PuterClient()
-
-
 def _sse(url, payload, headers=None):
     """Yield text deltas from an OpenAI-style server-sent-event stream."""
-    with requests.post(url, json={**payload, "stream": True}, headers=headers, stream=True, timeout=90) as r:
+    # 10s to connect, then the reply must keep flowing (20s max between chunks)
+    with requests.post(url, json={**payload, "stream": True}, headers=headers, stream=True, timeout=(10, 20)) as r:
         r.raise_for_status()
         for line in r.iter_lines(decode_unicode=True):
             if not line or not line.startswith("data:"):
@@ -49,27 +43,51 @@ def _sse(url, payload, headers=None):
                 yield delta
 
 
-def stream(provider, messages, context=None):
-    """Stream a reply token by token; falls back to a single response if streaming fails."""
+def _typewriter(text, delay=0.012):
+    """Yield prepared text word by word so it reads like a live reply."""
+    for word in text.split(" "):
+        yield word + " "
+        time.sleep(delay)
+
+
+BUSY = "The AI coach is busy right now. Try again in a minute, or pick the built-in coach in the sidebar."
+
+
+def stream(provider, messages, context=None, fallback=None):
+    """Stream a reply token by token. If the AI fails or is slow, stream `fallback` (or a short notice) instead."""
     system = "You are a concise, practical chess coach."
     if context:
         system += f"\n\nPLAYER DATA:\n{context}"
     convo = [{"role": "system", "content": system}] + [m for m in messages if m["role"] != "system"]
+    if provider == OFFLINE:
+        yield from _typewriter(fallback or BUSY)
+        return
+    started = False
     try:
         if provider == GEMINI and not missing_key(GEMINI):
-            client = LLMClient()
             text = "\n\n".join(f"{m['role']}: {m['content']}" for m in convo)
-            for chunk in client.model.generate_content(text, stream=True):
-                yield chunk.text
+            chunks = (c.text for c in LLMClient().model.generate_content(text, stream=True))
         elif provider == GROQ and not missing_key(GROQ):
             client = GroqClient()
-            yield from _sse(client.url, {"model": client.model, "messages": convo},
-                            {"Authorization": f"Bearer {os.getenv('GROQ_API_KEY')}"})
+            chunks = _sse(client.url, {"model": client.model, "messages": convo},
+                          {"Authorization": f"Bearer {os.getenv('GROQ_API_KEY')}"})
         else:
-            yield from _sse("https://text.pollinations.ai/openai", {"model": "openai", "messages": convo})
+            chunks = _sse("https://text.pollinations.ai/openai", {"model": "openai", "messages": convo})
+        for chunk in chunks:
+            started = True
+            yield chunk
+        if started:
+            return
     except Exception as e:
-        print(f"Streaming failed ({e}); falling back to a single response")
-        yield get_client(provider).chat(messages, context=context)
+        print(f"AI coach unavailable ({e})")
+        if started:  # reply was cut off part-way; end it cleanly
+            yield " …"
+            return
+    if fallback:
+        yield "*Built-in coach (the AI service didn't respond).*\n\n"
+        yield from _typewriter(fallback)
+    else:
+        yield BUSY
 
 
 def report_prompt(stats, risk, pacing, time_stats, analysis, white_stats, black_stats):

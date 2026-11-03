@@ -34,7 +34,9 @@ Sets up the page, picks the database (MongoDB if running, otherwise SQLite), ren
 - `data_processing.py`: turns raw games into a DataFrame and computes risk, pacing, time and accuracy metrics.
 - `eda.py`: Plotly chart builders.
 - `local_engine.py`: local Stockfish analysis (ACPL per side).
-- `puter_client.py`, `groq_client.py`, `llm_client.py`: non-streaming chat clients per provider.
+- `groq_client.py`, `llm_client.py`: Groq and Gemini connection settings.
+- `local_coach.py`: built-in coach that writes the report from graded stats (offline fallback).
+- `grades.py`: chess benchmarks that grade each stat and compute the Gambit Score.
 - `DataBases/`: MongoDB and portable SQLite storage, PGN parser and analytics CLI.
 
 ## Requirements

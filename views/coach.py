@@ -1,6 +1,7 @@
 import streamlit as st
 
 import coach_ai
+import local_coach
 import theme
 from data_processing import get_opening_stats
 
@@ -22,9 +23,11 @@ def render(df, speed, provider, stats, risk, pacing, time_stats, analysis):
         if clicked:
             prompt = coach_ai.report_prompt(stats, risk, pacing, time_stats, analysis,
                                             get_opening_stats(df, color="white"), get_opening_stats(df, color="black"))
-            reports[key] = st.write_stream(coach_ai.stream(provider, [{"role": "user", "content": prompt}]))
+            backup = local_coach.report(stats, risk, pacing, analysis, time_stats, get_opening_stats(df))
+            reports[key] = st.write_stream(
+                coach_ai.stream(provider, [{"role": "user", "content": prompt}], fallback=backup))
             st.rerun()  # redraw with the Regenerate label
         elif key in reports:
             st.markdown(reports[key])
         else:
-            st.caption("Takes about 20 seconds.")
+            st.caption("Ready in seconds. Works offline too.")

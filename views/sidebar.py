@@ -39,8 +39,10 @@ def render(db):
             value = st.text_input(f"{provider} API key", type="password", value=os.getenv(key_name, ""))
             if value:
                 os.environ[key_name] = value
+        elif provider == coach_ai.OFFLINE:
+            st.caption("Instant · works without internet")
         else:
-            st.caption("Free · no key")
+            st.caption("Free · falls back to built-in if busy")
 
         with st.expander("Connections", icon=":material/key:"):
             token = st.text_input("Lichess API token", type="password", value=os.getenv("LICHESS_TOKEN", ""),

@@ -140,8 +140,12 @@ def _review_games(df, game_ids, provider):
                     g['players'][color].setdefault('analysis', {})['acpl'] = int(result[f'{color}_acpl'])
 
             times = len(df[(df['opening_name'] == row['opening_name']) & (df['user_color'] == row['user_color'])])
-            review = coach_ai.get_client(provider).chat(
-                [{"role": "user", "content": coach_ai.game_review_prompt(row, my_acpl, times)}])
+            grade = grades.grade('acpl', my_acpl)
+            backup = (f"Accuracy loss {my_acpl} ({grades.LABELS[grade]}). "
+                      f"{'Clean game: keep it up.' if grade == grades.GOOD else 'Replay it and find the move where the evaluation dropped most.'}")
+            review = "".join(coach_ai.stream(
+                provider, [{"role": "user", "content": coach_ai.game_review_prompt(row, my_acpl, times)}],
+                fallback=backup))
             st.session_state.setdefault('messages', []).append(
                 {"role": "assistant", "content": f"**Game review: {row['opening_name']}**\n\n{review}"})
         except Exception as e:

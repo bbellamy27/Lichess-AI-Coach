@@ -248,12 +248,13 @@ hr {{ border-color: var(--line) !important; }}
 @media (max-width: 640px) {{ .hero {{ padding-right: 90px; }} .empty-logo {{ width: 120px; height: 120px; }} }}
 @media (max-width: 760px) {{ .steps {{ grid-template-columns: 1fr; }} .step + .step {{ border-left: none; border-top: 1px solid var(--line); }} }}
 
-.brand {{ display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }}
-.brand-mark {{ width: 44px; height: 44px; flex: none; display: grid; place-items: center; }}
+.brand {{ display: flex; flex-direction: column; align-items: center; gap: 6px; margin: 4px 0 10px; text-align: center; }}
+.brand-mark {{ width: 96px; height: 96px; flex: none; display: grid; place-items: center;
+    filter: drop-shadow(0 0 22px rgba(215,38,31,.35)); }}
 .brand-mark img {{ width: 100%; height: 100%; object-fit: contain; }}
 .empty-logo {{ width: 168px; height: 168px; object-fit: contain; margin: 0 auto 6px; display: block;
     filter: drop-shadow(0 0 34px rgba(215,38,31,.4)); }}
-.brand-name {{ font-family: var(--display); font-weight: 800; font-size: 1.15rem; color: var(--text); letter-spacing: -0.02em; }}
+.brand-name {{ font-family: var(--display); font-weight: 800; font-size: 2rem; line-height: 1; color: var(--text); letter-spacing: -0.03em; }}
 
 .st-key-report {{ padding: 8px 12px; }}
 .st-key-report h1, .st-key-report h2 {{ font-size: 1.2rem !important; margin-top: 1.2rem; }}
@@ -313,7 +314,6 @@ def _data_uri(name):
     return "data:image/webp;base64," + base64.b64encode((ASSETS / name).read_bytes()).decode()
 
 
-LOGO_SMALL = _data_uri("gambit_logo_128.webp")
 LOGO_LARGE = _data_uri("gambit_logo.webp")
 
 _ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">{}</svg>'
@@ -509,5 +509,5 @@ def empty_steps():
 
 
 def brand():
-    _html(f'<div class="brand"><div class="brand-mark"><img src="{LOGO_SMALL}" alt=""></div>'
+    _html(f'<div class="brand"><div class="brand-mark"><img src="{LOGO_LARGE}" alt=""></div>'
           f'<div class="brand-name">Gambit <span>AI</span></div></div>')

@@ -28,9 +28,9 @@ def _opponent(row):
 
 def render(df, opening_stats, provider, db):
     counts = df['result'].value_counts()
-    theme.takeaway(f"{len(df)} games: {counts.get('Win', 0)} wins, {counts.get('Draw', 0)} draws, "
-                   f"{counts.get('Loss', 0)} losses. Tick a game below for an AI review.")
-    theme.section("♟️ Games", "Tick any game to get an engine + AI review of it.")
+    theme.takeaway(f"{len(df)} games · {counts.get('Win', 0)} wins · {counts.get('Loss', 0)} losses. "
+                   "Tick one for an AI review.")
+    theme.section("♟️ Games")
     table = pd.DataFrame({
         'Result': df['result'].map(RESULT_ICONS) + " · " + df['speed'].fillna('').str.title(),
         'Opponent': df.apply(_opponent, axis=1),
@@ -64,14 +64,13 @@ def render(df, opening_stats, provider, db):
         with c2.popover("Save", icon=":material/bookmark_add:", width="stretch"):
             _save_to_study(db, df, selected)
 
-    theme.section("📖 Openings", "Which first moves you play and how often you win with them.")
+    theme.section("📖 Openings", "Your first moves and win rates.")
     if opening_stats.empty:
         st.info("No openings yet.")
         return
     openings = opening_stats[['opening_name', 'eco', 'games', 'wins', 'draws', 'losses', 'win_rate']].fillna({'eco': "—"})
     win_colors = [_color(grades.win_rate_grade(r.win_rate, r.games)) for r in openings.itertuples()]
     styled = openings.style.format({'win_rate': '{:.0%}'}).apply(lambda col: win_colors, subset=['win_rate'])
-    st.caption("Win rates are coloured once an opening has 5+ games.")
     st.dataframe(
         styled,
         hide_index=True, width="stretch", height=min(38 + 35 * len(opening_stats), 460),
@@ -82,7 +81,7 @@ def render(df, opening_stats, provider, db):
             'wins': st.column_config.NumberColumn("W", width=44),
             'draws': st.column_config.NumberColumn("D", width=44),
             'losses': st.column_config.NumberColumn("L", width=44),
-            'win_rate': st.column_config.Column("Win rate", width=90),
+            'win_rate': st.column_config.Column("Win rate", width=90, help="Coloured once an opening has 5+ games"),
         },
     )
 

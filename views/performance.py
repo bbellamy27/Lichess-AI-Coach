@@ -29,7 +29,7 @@ def render(df, opening_stats, risk, pacing, analysis, time_stats):
     (_, strength), (leak_grade, leak) = grades.findings(win_rate, analysis)
     theme.takeaway(f"Biggest leak: {leak[0].lower() + leak[1:]}." if leak_grade == grades.BAD
                    else f"Strongest area: {strength[0].lower() + strength[1:]}.")
-    theme.section("🧭 Style", "How risky your games get and how fast you play.")
+    theme.section("🧭 Style", "Risk and speed.")
     c1, c2, c3 = st.columns([1.1, 1, 1.6])
     with c1:
         theme.chart(_gauge(risk))
@@ -46,7 +46,7 @@ def render(df, opening_stats, risk, pacing, analysis, time_stats):
             st.caption(risk['feedback'])
             st.caption(pacing['feedback'])
 
-    theme.section("🎯 Accuracy", "Measured by a chess engine on analysed games.")
+    theme.section("🎯 Accuracy", "Checked by a chess engine.")
     if analysis:
         theme.grade_legend()
 
@@ -74,7 +74,7 @@ def render(df, opening_stats, risk, pacing, analysis, time_stats):
         st.info("No engine data yet. Pick games in **Games** → **Review**.", icon=":material/neurology:")
 
     if time_stats:
-        theme.section("⏱️ Time per move", "Seconds you spend per move at the start, middle and end of a game.")
+        theme.section("⏱️ Time per move", "Seconds per move, by game stage.")
         cards = []
         for label, key in [("Opening", 'opening'), ("Middlegame", 'middlegame'), ("Endgame", 'endgame')]:
             status, _, tip = time_stats[f'{key}_feedback'].partition('. ')
@@ -82,7 +82,7 @@ def render(df, opening_stats, risk, pacing, analysis, time_stats):
                               grade=grades.time_grade(status), foot=f"{status}. {tip}"))
         theme.kpis(cards)
 
-    theme.section("📈 Trends", "Your rating over time and which openings work for you.")
+    theme.section("📈 Trends", "Rating and best openings.")
     c1, c2 = st.columns(2)
     theme.chart(plot_rating_trend(df), c1)
     theme.chart(plot_win_rate_by_color(df), c2)

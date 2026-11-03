@@ -98,18 +98,17 @@ stats = dataset.cached(speed, compute_stats)
 opening_stats, risk, pacing, analysis, time_stats = (
     stats[k] for k in ('opening_stats', 'risk', 'pacing', 'analysis', 'time_stats'))
 
-theme.glossary()
-tab_home, tab_games, tab_perf, tab_insights, tab_coach, tab_vault = st.tabs(
-    ["🏠 Overview", "♟️ Games", "📊 Performance", "🧠 Insights", "🤖 AI Coach", "🗄️ Vault"])
-with tab_home:
-    overview.render(df, fs, risk, pacing, analysis, time_stats)
-with tab_games:
-    games.render(df, opening_stats, provider, db)
-with tab_perf:
-    performance.render(df, opening_stats, risk, pacing, analysis, time_stats)
-with tab_insights:
-    insights.render(df, risk, pacing, analysis, time_stats)
-with tab_coach:
-    coach.render(df, speed, provider, dataset.player_stats(df, username), risk, pacing, time_stats, analysis)
-with tab_vault:
-    vault.render(db)
+# Guided path: one step at a time, with Back / Next at the bottom of each
+STEPS = {
+    "🏠 Overview": lambda: overview.render(df, fs, risk, pacing, analysis, time_stats),
+    "♟️ Games": lambda: games.render(df, opening_stats, provider, db),
+    "📊 Performance": lambda: performance.render(df, opening_stats, risk, pacing, analysis, time_stats),
+    "🧠 Insights": lambda: insights.render(df, risk, pacing, analysis, time_stats),
+    "🤖 AI Coach": lambda: coach.render(df, speed, provider, dataset.player_stats(df, username),
+                                        risk, pacing, time_stats, analysis),
+    "🗄️ Vault": lambda: vault.render(db),
+}
+names = list(STEPS)
+step = st.segmented_control("Step", names, key="step", default=names[0], label_visibility="collapsed") or names[0]
+STEPS[step]()
+theme.step_nav(names, step)

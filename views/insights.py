@@ -28,17 +28,17 @@ def render(df, risk, pacing, analysis, time_stats):
     favourite = f" Favourite opening: {family.index[0]}." if not family.empty else ""
     theme.takeaway(f"You play like a {theme.plain(pacing['label'])} with a {theme.plain(risk['label']).lower()} "
                    f"style.{favourite}")
-    theme.section("🧠 Style profile", "Five traits scored 0-10, and how long you think per move.")
+    theme.section("🧠 Style profile", "Five traits, scored 0-10.")
     c1, c2 = st.columns(2)
     _chart(c1, plot_radar_chart(_personality(risk, pacing, analysis)), "Not enough data.")
     _chart(c2, plot_move_time_distribution((time_stats or {}).get('raw_times')), "No clock data.")
 
-    theme.section("📚 Repertoire", "Openings are the named first moves of a game. Bars show wins, draws and losses.")
+    theme.section("📚 Repertoire", "Wins and losses by opening.")
     c1, c2 = st.columns(2)
     _chart(c1, plot_repertoire(df, 'white'), "No games as White.")
     _chart(c2, plot_repertoire(df, 'black'), "No games as Black.")
 
-    theme.section("🔍 Patterns", "When you play, how games end, and how you do against stronger players.")
+    theme.section("🔍 Patterns", "When you play and who you beat.")
     c1, c2 = st.columns(2)
     _chart(c1, plot_time_heatmap(df), "No activity data.")
     _chart(c2, plot_opponent_scatter(df), "No opponent data.")

@@ -6,6 +6,7 @@ from pathlib import Path
 import plotly.graph_objects as go
 import plotly.io as pio
 import streamlit as st
+import streamlit.components.v1 as components
 
 import grades
 
@@ -282,10 +283,6 @@ hr {{ border-color: var(--line) !important; }}
 .badge-icon {{ font-size: 1.5rem; }}
 .badge-name {{ font-weight: 700; color: var(--text); font-size: 0.9rem; }}
 .badge-desc {{ color: var(--muted); font-size: 0.76rem; }}
-.next {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }}
-.next-item {{ padding: 12px 14px; border-radius: 14px; background: var(--surface); border: 1px dashed var(--border); }}
-.next-item b {{ color: var(--text); }}
-.next-item div {{ color: var(--text-2); font-size: 0.84rem; margin-top: 2px; }}
 .footer {{ color: var(--muted); font-size: 0.72rem; margin-top: 20px; }}
 </style>
 """
@@ -394,14 +391,14 @@ def story_cards(score, letter, tone, style, strength, strength_tone, leak, leak_
         <div class="score-ring" style="--tone:{tone};--pct:{score}"><span>{esc(letter)}</span></div>
         <div><div class="story-title">Gambit Score</div>
         <div class="story-big">{score}/100</div>
-        <div class="story-sub">Blends wins, accuracy and time use. A = elite, C = solid club player.</div></div>
+        <div class="story-sub">A elite · B strong · C solid club</div></div>
       </div>
       <div class="card"><div class="story-title">💪 Biggest strength</div>
         <div class="story-big" style="color:{strength_tone}">{esc(strength)}</div>
         <div class="story-sub">Style: {esc(style)}</div></div>
       <div class="card"><div class="story-title">🎯 Fix this first</div>
         <div class="story-big" style="color:{leak_tone}">{esc(leak)}</div>
-        <div class="story-sub">The AI Coach turns this into a plan.</div></div>
+        <div class="story-sub">Your AI Coach plan starts here.</div></div>
     </div>
     """)
 
@@ -410,11 +407,6 @@ def badges(items):
     cells = "".join(f'<div class="badge"><div class="badge-icon">{icon}</div><div><div class="badge-name">{esc(name)}</div>'
                     f'<div class="badge-desc">{esc(desc)}</div></div></div>' for icon, name, desc in items)
     _html(f'<div class="badge-row">{cells}</div>')
-
-
-def next_steps(items):
-    cells = "".join(f'<div class="next-item"><b>{icon} {esc(tab)}</b><div>{esc(desc)}</div></div>' for icon, tab, desc in items)
-    _html(f'<div class="next">{cells}</div>')
 
 
 def glossary():
@@ -429,6 +421,31 @@ def glossary():
             "- **Opening**: the named sequence of first moves, like the *Sicilian Defense*.",
             "- **Colours**: ✅ green is good, ⚠️ amber is OK, 🔻 red needs work.",
         ]))
+
+
+PATH_END = "🤖 AI Coach"  # the guided path stops here; later steps (Vault) are tools
+
+
+def _go(target):
+    st.session_state["step"] = target
+    st.session_state["_scroll_top"] = True
+
+
+def step_nav(names, current):
+    """Back / Next buttons under a step, so the app reads as a path."""
+    i = names.index(current)
+    back = names[i - 1] if i > 0 else None
+    nxt = names[i + 1] if current != PATH_END and i + 1 < len(names) else None
+    st.write("")
+    left, _, right = st.columns([1, 2, 1])
+    if back:
+        left.button(f"← {back}", on_click=_go, args=(back,), width="stretch", key="nav_back")
+    if nxt:
+        right.button(f"Next: {nxt} →", on_click=_go, args=(nxt,), type="primary", width="stretch", key="nav_next")
+    if st.session_state.pop("_scroll_top", False):
+        # Jump to the top of the new step; retry briefly while Streamlit finishes drawing it
+        components.html("<script>const toTop = () => window.parent.document.querySelector('[data-testid=stMain]')"
+                        ".scrollTo(0, 0); [0, 120, 300, 600].forEach(ms => setTimeout(toTop, ms));</script>", height=0)
 
 
 def score_card(name, score, stats, note=None):

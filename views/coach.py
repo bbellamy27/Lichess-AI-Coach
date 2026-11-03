@@ -6,7 +6,7 @@ from data_processing import get_opening_stats
 
 
 def render(df, speed, provider, stats, risk, pacing, time_stats, analysis):
-    theme.takeaway("A personal plan written from your own games: a verdict, three fixes and one drill.")
+    theme.takeaway("Your plan: one verdict, three fixes, one drill.")
     theme.section("🤖 Coaching report")
     if coach_ai.missing_key(provider):
         st.warning(f"Add a {provider} key in the sidebar.")
@@ -27,4 +27,4 @@ def render(df, speed, provider, stats, risk, pacing, time_stats, analysis):
         elif key in reports:
             st.markdown(reports[key])
         else:
-            st.caption("A verdict, three fixes and one drill, from your own games.")
+            st.caption("Takes about 20 seconds.")

@@ -1,4 +1,6 @@
 """First tab: the story in plain English, so non-chess players get it in seconds."""
+import streamlit as st
+
 import grades
 import theme
 
@@ -59,9 +61,5 @@ def render(df, summary, risk, pacing, analysis, time_stats):
     theme.section("🏅 Badges")
     theme.badges(_badges(df, summary))
 
-    theme.section("👉 Where to look next")
-    theme.next_steps([
-        ("🤖", "AI Coach", "Get a 3-step plan written for you"),
-        ("📊", "Performance", "See where you lose points: opening, middle or end"),
-        ("🧠", "Insights", "Your playing style and favourite openings"),
-    ])
+    st.write("")
+    theme.glossary()

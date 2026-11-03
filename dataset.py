@@ -25,6 +25,7 @@ def store(df, raw_games, username):
         coach_reports={},
         stats_cache={},
     )
+    st.session_state.pop('step', None)  # new player: start the guided path from the Overview
 
 
 def cached(speed, compute):

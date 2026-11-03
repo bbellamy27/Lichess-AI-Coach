@@ -1,7 +1,10 @@
+from pathlib import Path
+
 import streamlit as st
 from dotenv import load_dotenv
 
-st.set_page_config(page_title="Gambit AI · Personal chess coach", page_icon=":material/grid_view:",
+st.set_page_config(page_title="Gambit AI · Personal chess coach",
+                   page_icon=str(Path(__file__).parent / "assets" / "favicon.png"),
                    layout="wide", initial_sidebar_state="auto")
 load_dotenv()
 

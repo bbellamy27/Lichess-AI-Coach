@@ -1,5 +1,7 @@
 """Design tokens, global CSS and small HTML building blocks."""
+import base64
 import html
+from pathlib import Path
 
 import plotly.graph_objects as go
 import plotly.io as pio
@@ -160,8 +162,8 @@ hr {{ border-color: var(--line) !important; }}
 .hero::after {{ content: ""; position: absolute; inset: 0 0 0 auto; width: 46%;
     background: repeating-conic-gradient(rgba(255,255,255,0.035) 0 25%, transparent 0 50%) 0 0 / 40px 40px;
     -webkit-mask-image: linear-gradient(90deg, transparent, #000 80%); mask-image: linear-gradient(90deg, transparent, #000 80%); }}
-.hero .hero-art {{ position: absolute; right: 28px; bottom: 10px; width: 150px; height: 150px; opacity: .18; z-index: 0 !important;
-    filter: drop-shadow(0 0 24px rgba(124,108,242,.6)); }}
+.hero .hero-art {{ position: absolute; right: 24px; top: 50%; transform: translateY(-50%); height: 128%; opacity: .55;
+    z-index: 0 !important; pointer-events: none; }}
 .hero > * {{ position: relative; z-index: 1; }}
 .eyebrow {{ font-size: 0.7rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--accent); font-weight: 700; }}
 .hero-title {{ font-family: var(--display); font-size: clamp(1.9rem, 3.6vw, 3rem); font-weight: 800; color: var(--text);
@@ -237,8 +239,10 @@ hr {{ border-color: var(--line) !important; }}
 @media (max-width: 760px) {{ .steps {{ grid-template-columns: 1fr; }} .step + .step {{ border-left: none; border-top: 1px solid var(--line); }} }}
 
 .brand {{ display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }}
-.brand-mark {{ width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; overflow: hidden;
-    background: var(--primary); color: #fff; }}
+.brand-mark {{ width: 38px; height: 38px; display: grid; place-items: center; }}
+.brand-mark img {{ width: 100%; height: 100%; object-fit: contain; }}
+.empty-logo {{ width: 150px; height: 150px; object-fit: contain; margin: 0 auto 6px; display: block;
+    filter: drop-shadow(0 10px 30px rgba(229,83,75,.25)); }}
 .brand-name {{ font-family: var(--display); font-weight: 800; font-size: 1.15rem; color: var(--text); letter-spacing: -0.02em; }}
 
 .st-key-report {{ padding: 8px 12px; }}
@@ -263,40 +267,15 @@ def chart(fig, where=st):
                            config={'displayModeBar': False, 'displaylogo': False})
 
 
-# Knight mark: an aggressive geometric knight (head down, jaw open, ears pinned) on a heavy plinth
-_KNIGHT = (
-    # Head and neck: lowered, thrusting forward, open jaw, pinned ear, blade mane
-    '<path d="M27 81 L23 71 L35 62 L38 58 L15 62 L5 60 L17 55 L3 52 L8 44 L12 41 L26 30 L34 26 L41 24 L45 19 '
-    'L61 4 L55 18 L62 14 L73 5 L71 17 L83 13 L79 25 L93 23 L85 35 L97 39 L87 47 L89 64 L85 81 Z" fill="{body}"/>'
-    # Shading plane over the crest and back of the neck
-    '<path d="M55 18 L62 14 L73 5 L71 17 L83 13 L79 25 L93 23 L85 35 L97 39 L87 47 L89 64 L85 81 L62 81 L60 46 Z" '
-    'fill="{shade}" opacity=".22"/>'
-    # Heavy plinth, separated by a gap
-    '<path d="M22 85 H90 L88 90 H24 Z M18 92 H94 V98 H18 Z" fill="{body}"/>'
-    # Cuts: brow, jaw muscle, neck muscle, nostril
-    '<g fill="none" stroke="{shade}" stroke-linecap="round">'
-    '<path d="M23 31 L43 24" stroke-width="2.6"/>'
-    '<path d="M38 58 Q42 46 31 37" stroke-width="2"/>'
-    '<path d="M42 77 Q53 60 47 43" stroke-width="2" opacity=".5"/>'
-    '<path d="M8 47 L15 44" stroke-width="2.2"/></g>'
-    # Narrow slanted eye with an ember glint
-    '<path d="M27 35 L41 29 L38 35 Z" fill="{shade}"/>'
-    '<path d="M33 33.5 L39 31 L37.6 33.6 Z" fill="{eye}"/>'
-)
+ASSETS = Path(__file__).parent / "assets"
 
 
-def knight_svg(body="#fff", shade="#2A1F6E", eye="#E5534B", size=None, cls=""):
-    dims = f' width="{size}" height="{size}"' if size else ""
-    return (f'<svg class="{cls}" viewBox="0 0 100 100"{dims} xmlns="http://www.w3.org/2000/svg">'
-            + _KNIGHT.format(body=body, shade=shade, eye=eye) + '</svg>')
+def _data_uri(name):
+    return "data:image/webp;base64," + base64.b64encode((ASSETS / name).read_bytes()).decode()
 
 
-LOGO = ('<svg viewBox="0 0 34 34" width="34" height="34" xmlns="http://www.w3.org/2000/svg">'
-        '<defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8F81F5"/>'
-        '<stop offset="1" stop-color="#4A3DB8"/></linearGradient></defs>'
-        '<rect width="34" height="34" rx="9" fill="url(#lg)"/>'
-        '<g transform="translate(4 3.5) scale(.265)">'
-        + _KNIGHT.format(body="#fff", shade="#3A2FA0", eye="#E5534B") + '</g></svg>')
+LOGO_SMALL = _data_uri("gambit_logo_128.webp")
+LOGO_LARGE = _data_uri("gambit_logo.webp")
 
 _ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">{}</svg>'
 ICONS = {
@@ -332,7 +311,7 @@ def hero(eyebrow, title, chips=None):
     chip_html = "".join(f'<span class="chip">{c}</span>' for c in (chips or []))
     _html(f"""
     <div class="hero">
-        {knight_svg(body="#B3A9FF", shade="#18191C", eye="#E5534B", cls="hero-art")}
+        <img class="hero-art" src="{LOGO_LARGE}" alt="">
         <div class="eyebrow">{esc(eyebrow)}</div>
         <div class="hero-title">{title}</div>
         {f'<div class="hero-chips">{chip_html}</div>' if chip_html else ''}
@@ -381,6 +360,7 @@ def insight(icon, title, body):
 def empty_state():
     _html(f"""
     <div class="empty">
+        <img class="empty-logo" src="{LOGO_LARGE}" alt="Gambit AI">
         <div class="eyebrow">Gambit AI · personal chess coach</div>
         <div class="hero-title">Know your game<br><em>Fix one thing</em></div>
         <div class="empty-sub">Enter a Lichess username in the sidebar, or see it in action.</div>
@@ -401,4 +381,5 @@ def empty_steps():
 
 
 def brand():
-    _html(f'<div class="brand"><div class="brand-mark">{LOGO}</div><div class="brand-name">Gambit <span>AI</span></div></div>')
+    _html(f'<div class="brand"><div class="brand-mark"><img src="{LOGO_SMALL}" alt=""></div>'
+          f'<div class="brand-name">Gambit <span>AI</span></div></div>')
